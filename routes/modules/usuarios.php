@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::withoutMiddleware(['auth', 'active.member'])->group(function () {
     Route::get('/invitaciones/{token}', [InvitationController::class, 'show'])
         ->where('token', '[A-Za-z0-9]{48}')
+        ->middleware('throttle:30,1')
         ->name('invitations.accept');
 
     Route::post('/invitaciones/{token}', [InvitationController::class, 'accept'])

@@ -50,29 +50,32 @@ class DemoFacturacionSeeder extends Seeder
         $this->ensureIssuerSettings();
 
         // Folios consecutivos tipo F-0225... si todavia no se ha facturado nada.
+        // (Aquí no hay facturas todavía: se alinean la secuencia general y la de la serie por defecto.)
+        $defaultSeries = (string) (\App\Models\OrganizationFiscalSetting::query()->value('default_series') ?? '');
         DB::table('folio_sequences')
             ->where('organization_id', Organization::currentId())
-            ->where('document_type', Folio::INVOICE)->where('series', '')
-            ->where('last_value', '<', 224)->update(['last_value' => 224]);
+            ->where('document_type', Folio::INVOICE)
+            ->whereIn('series', array_unique(['', $defaultSeries]))
+            ->update(['last_value' => 224]);
 
         // ---- F-0225 · Fernanda Lozano Cruz · cancelada antes de timbrar ----
         $fernanda = $this->patient('Fernanda Lozano Cruz', ['LOCF900418M62', 'Fernanda Lozano Cruz', '612', '03100', 'D01']);
         $inv = $this->manual($svc, $fernanda, $branchId, $doctorId, $iva, 'Extracción simple y ajuste de ortodoncia', '6500', 'PUE', '03');
-        $this->date($inv, 22);
         $svc->issue($inv, $admin);
+        $this->date($inv, 22);
         $svc->cancel($inv, ['reason_code' => '02', 'detail' => 'Capturada con importe incorrecto'], $admin);
 
         // ---- F-0226 · Jorge Salinas Cano · pendiente ----
         $jorge = $this->patient('Jorge Salinas Cano', ['SACJ790225QX9', 'Jorge Salinas Cano', '612', '04510', 'D01']);
         $inv = $this->manual($svc, $jorge, $branchId, $doctorId, $iva, 'Rehabilitación con coronas de zirconia', '21000', 'PUE', '03');
-        $this->date($inv, 14);
         $svc->issue($inv, $admin);
+        $this->date($inv, 14);
 
         // ---- F-0227 · Roberto Mendoza Lira · pagada por transferencia ----
         $roberto = $this->patient('Roberto Mendoza Lira', ['MELR830712HD5', 'Roberto Mendoza Lira', '612', '11520', 'D01']);
         $inv = $this->manual($svc, $roberto, $branchId, $doctorId, $iva, 'Endodoncia molar inferior', '3200', 'PUE', '03');
-        $this->date($inv, 9);
         $svc->issue($inv, $admin);
+        $this->date($inv, 9);
         $payments->register([
             'patient_id' => $roberto->id, 'branch_id' => $branchId, 'paid_at' => now()->subDays(9)->setTime(12, 40),
             'method' => 'transferencia', 'reference' => 'SPEI-30912', 'idempotency_key' => 'demo-pay-' . $inv->id,
@@ -93,8 +96,8 @@ class DemoFacturacionSeeder extends Seeder
         } else {
             $inv = $this->manual($svc, $valeria, $branchId, $doctorId, $iva, 'Tratamiento dental', '12000', 'PUE', '04');
         }
-        $this->date($inv, 5);
         $svc->issue($inv, $admin);
+        $this->date($inv, 5);
         $payments->register([
             'patient_id' => $valeria->id, 'branch_id' => $inv->branch_id, 'paid_at' => now()->subDays(5)->setTime(17, 5),
             'method' => 'tarjeta', 'reference' => 'AUTH-88421', 'idempotency_key' => 'demo-pay-' . $inv->id,

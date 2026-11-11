@@ -49,9 +49,28 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // No dejar el consultorio sin ningun administrador activo.
+        if ($user->isAdmin()) {
+            $otherAdmins = \Illuminate\Support\Facades\DB::table('organization_members as m')
+                ->join('roles as r', 'r.id', '=', 'm.role_id')
+                ->join('users as u', 'u.id', '=', 'm.user_id')
+                ->where('m.is_active', true)->where('u.is_active', true)
+                ->where('u.id', '!=', $user->id)
+                ->where(fn ($q) => $q->where('r.is_system_admin', true)->orWhere('r.code', 'admin_sistema'))
+                ->count();
+
+            if ($otherAdmins === 0) {
+                return Redirect::back()->with('error', 'No puedes dar de baja tu cuenta: eres el único administrador activo del consultorio.');
+            }
+        }
+
         Auth::logout();
 
-        $user->forceFill(['is_active' => false])->save();
+        // Baja logica: usuario y membresia (el trigger revoca las sesiones registradas).
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+            \Illuminate\Support\Facades\DB::table('organization_members')->where('user_id', $user->id)->update(['is_active' => false]);
+            $user->forceFill(['is_active' => false])->save();
+        });
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

@@ -20,8 +20,7 @@ abstract class FinanzasRequest extends FormRequest
         foreach ($keys as $key) {
             $value = $this->input($key);
             if (is_string($value)) {
-                $clean = preg_replace('/[\s$,]/', '', $value);
-                $merge[$key] = $clean;
+                $merge[$key] = \App\Support\Money::cleanInput($value);
             }
         }
         if ($merge) {

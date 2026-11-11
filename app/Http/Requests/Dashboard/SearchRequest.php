@@ -13,7 +13,10 @@ class SearchRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge(['q' => trim((string) $this->input('q', ''))]);
+        $q = $this->input('q', '');
+
+        // Un arreglo (?q[]=a) no se convierte a texto: la regla 'string' lo rechaza con 422.
+        $this->merge(['q' => is_string($q) ? trim($q) : $q]);
     }
 
     public function rules(): array

@@ -30,6 +30,30 @@ abstract class ExpedienteRequest extends FormRequest
         return $p instanceof Patient ? $p : null;
     }
 
+    /**
+     * Menores de edad: quien acepta (consentimiento / autorización) debe ser uno de los tutores
+     * registrados del paciente (el módulo Pacientes obliga a registrar tutor a los menores).
+     * Devuelve el mensaje de error o null si no aplica / es válido.
+     */
+    protected function minorAcceptanceError(?Patient $patient, string $name, string $what = 'el consentimiento'): ?string
+    {
+        if (! $patient || ! $patient->birth_date || $patient->birth_date->age >= 18) {
+            return null;
+        }
+
+        $norm = fn (string $s) => mb_strtolower(preg_replace('/\s+/u', ' ', trim(\Illuminate\Support\Str::ascii($s))));
+        $guardians = \App\Models\PatientGuardian::query()->where('patient_id', $patient->id)->pluck('full_name');
+
+        if ($guardians->isEmpty()) {
+            return 'El paciente es menor de edad y no tiene tutor registrado: registra al tutor en Pacientes antes de aceptar.';
+        }
+        if (! $guardians->contains(fn ($g) => $norm($g) === $norm($name))) {
+            return "El paciente es menor de edad: {$what} debe aceptarlo uno de sus tutores registrados ({$guardians->implode(', ')}).";
+        }
+
+        return null;
+    }
+
     /** exists:tabla,id acotado a la organización. */
     protected function existsInOrg(string $table, string $column = 'id'): \Illuminate\Validation\Rules\Exists
     {

@@ -18,7 +18,7 @@ class AjusteRequest extends InventarioRequest
         return [
             'item_id' => ['required', 'uuid', $this->itemExists()],
             'branch_id' => ['required', 'uuid', $this->branchExists()],
-            'quantity' => ['required', 'numeric', 'regex:/^-?\d{1,10}(\.\d{1,4})?$/'],
+            'quantity' => ['bail', 'required', 'numeric', 'regex:/^-?\d{1,10}(\.\d{1,4})?$/'],
             'unit_cost' => $this->nonNegativeQty(),
             'reason' => ['required', 'string', 'min:3', 'max:500'],
             'reference' => ['nullable', 'string', 'max:120'],

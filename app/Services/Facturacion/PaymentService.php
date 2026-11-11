@@ -51,6 +51,12 @@ class PaymentService
 
     protected function doRegister(array $data, ?User $actor): Payment
     {
+        // CONCURRENCIA: el bloqueo de las facturas debe ser la PRIMERA lectura de la transaccion.
+        // En REPEATABLE READ el snapshot se toma en la primera lectura consistente; si se toma antes
+        // de obtener el bloqueo, dos pagos simultaneos no verian el pago confirmado por el otro
+        // (ni el trigger payment_applications ni balance() lo detectarian) y se excederia el saldo.
+        Invoice::whereIn('id', array_keys($data['applications']))->orderBy('id')->lockForUpdate()->get(['id']);
+
         // Idempotencia: el mismo token no duplica el pago.
         $existing = Payment::where('idempotency_key', $data['idempotency_key'])->first();
         if ($existing) {
@@ -305,7 +311,7 @@ class PaymentService
         $form = config('sat.forma_pago_por_metodo.' . $payment->method->value, '99');
 
         $complement = new Invoice([
-            'internal_folio' => Folio::next(Folio::INVOICE),
+            'internal_folio' => Folio::nextInSeries(Folio::INVOICE, $settings?->default_series),
             'series' => $settings?->default_series ?: null,
             'cfdi_type' => CfdiType::Pago,
             'patient_id' => $payment->patient_id,

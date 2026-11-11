@@ -21,7 +21,7 @@ class OpenCashSessionRequest extends FinanzasRequest
     {
         return [
             'cash_register_id' => ['required', 'uuid', Rule::exists('cash_registers', 'id')->where('organization_id', $this->organizationId())->where('status', 'active')],
-            'opening_amount' => ['required', 'numeric', 'min:0', 'max:99999999999.99', 'decimal:0,2'],
+            'opening_amount' => ['bail', 'required', 'numeric', 'min:0', 'max:99999999999.99', 'decimal:0,2'],
         ];
     }
 

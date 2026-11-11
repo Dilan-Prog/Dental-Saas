@@ -42,11 +42,12 @@ class StoreMovementRequest extends FinanzasRequest
             ],
             'method' => ['required', Rule::in(PaymentMethod::values())],
             'concept' => ['required', 'string', 'min:3', 'max:300'],
-            'amount' => ['required', 'numeric', 'gt:0', 'max:99999999999.99', 'decimal:0,2'],
+            'amount' => ['bail', 'required', 'numeric', 'gt:0', 'max:99999999999.99', 'decimal:0,2'],
             'occurred_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:2000-01-01', 'before_or_equal:today'],
             'branch_id' => ['required', 'uuid', Rule::exists('branches', 'id')->where('organization_id', $org)->where('status', 'active')],
             'cash_session_id' => ['nullable', 'uuid', Rule::exists('cash_sessions', 'id')->where('organization_id', $org)],
-            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            // mimes acepta la extension declarada por el cliente; mimetypes valida el CONTENIDO real.
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'mimetypes:image/jpeg,image/png,application/pdf', 'max:5120'],
         ];
     }
 
@@ -83,6 +84,7 @@ class StoreMovementRequest extends FinanzasRequest
             'branch_id.required' => 'Selecciona la sucursal.',
             'branch_id.exists' => 'La sucursal no existe o esta inactiva.',
             'cash_session_id.exists' => 'La caja seleccionada no existe.',
+            'receipt.mimetypes' => 'El contenido del comprobante no es JPG, PNG ni PDF.',
             'receipt.mimes' => 'El comprobante debe ser JPG, PNG o PDF.',
             'receipt.max' => 'El comprobante no puede pesar mas de 5 MB.',
             'receipt.file' => 'El comprobante no es un archivo valido.',

@@ -149,6 +149,7 @@ class DemoRecetasSeeder extends Seeder
             'folio' => Folio::next(Folio::PATIENT),
             'full_name' => $name,
             'birth_date' => $birth,
+            'phone' => '55'.str_pad((string) (crc32($name) % 100000000), 8, '0', STR_PAD_LEFT),
             'sex' => SexType::from($sex),
             'status' => RecordStatus::Active,
         ]);

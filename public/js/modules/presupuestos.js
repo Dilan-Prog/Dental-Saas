@@ -26,7 +26,9 @@
     }
     function round2(n) {
         // half-up a 2 decimales con corrección de coma flotante
-        return Math.round((n + Number.EPSILON) * 100) / 100;
+        // toPrecision(15) elimina el ruido binario (25 x 1671.2230 = 41780.575, no 41780.57499...)
+        var s = parseFloat(Number(n).toPrecision(15));
+        return Math.round(s * 100 + (s < 0 ? -1e-7 : 1e-7)) / 100;
     }
     function money(n) {
         return '$' + round2(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

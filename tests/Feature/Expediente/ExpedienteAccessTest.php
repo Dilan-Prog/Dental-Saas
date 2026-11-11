@@ -93,7 +93,7 @@ class ExpedienteAccessTest extends ExpedienteTestCase
 
         $patient->refresh();
         $this->assertSame('Valeria Domínguez Soto', $patient->full_name);
-        $this->assertSame('55 1847 2093', $patient->phone);
+        $this->assertSame('5518472093', $patient->phone); // solo dígitos, igual que en Pacientes
         $this->assertSame('valeria@correo.mx', $patient->email);
     }
 }

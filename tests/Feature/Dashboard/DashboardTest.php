@@ -46,7 +46,7 @@ class DashboardTest extends TestCase
 
     private function payment(Patient $p, string $amount, $at, string $key): Payment
     {
-        return Payment::create([
+        $payment = Payment::create([
             'branch_id' => $this->mainBranchId(),
             'patient_id' => $p->id,
             'paid_at' => $at,
@@ -55,6 +55,24 @@ class DashboardTest extends TestCase
             'status' => 'registrado',
             'idempotency_key' => $key,
         ]);
+
+        // Como Facturacion: todo pago crea su movimiento de ingreso (Dashboard y Finanzas leen de ahi).
+        $category = \App\Models\FinancialCategory::query()->firstOrCreate(
+            ['name' => 'Tratamientos', 'direction' => 'ingreso'], ['status' => 'active']
+        );
+        \App\Models\FinancialMovement::create([
+            'branch_id' => $this->mainBranchId(),
+            'direction' => 'ingreso',
+            'category_id' => $category->id,
+            'concept' => 'Pago · '.$p->full_name,
+            'occurred_on' => \Illuminate\Support\Carbon::parse($at)->toDateString(),
+            'amount' => $amount,
+            'currency' => 'MXN',
+            'method' => 'efectivo',
+            'payment_id' => $payment->id,
+        ]);
+
+        return $payment;
     }
 
     public function test_guests_are_redirected_to_login(): void

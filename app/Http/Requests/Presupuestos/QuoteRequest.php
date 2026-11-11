@@ -83,6 +83,19 @@ class QuoteRequest extends FormRequest
                     $validator->errors()->add('doctor_member_id', 'El usuario seleccionado no es un doctor activo.');
                 }
             },
+            // El total debe caber en decimal(14,2): evita un error 500 con importes extremos.
+            function (Validator $validator) {
+                if ($validator->errors()->isNotEmpty()) {
+                    return;
+                }
+                $total = '0';
+                foreach ($this->input('items', []) as $item) {
+                    $total = \App\Support\Money::add($total, \App\Support\Money::mul($item['quantity'], $item['unit_price']));
+                }
+                if (\App\Support\Money::cmp($total, '99999999999.99') > 0) {
+                    $validator->errors()->add('items', 'El importe total del presupuesto excede el máximo permitido.');
+                }
+            },
         ];
     }
 

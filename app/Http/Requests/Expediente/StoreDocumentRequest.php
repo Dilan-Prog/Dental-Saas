@@ -42,7 +42,8 @@ class StoreDocumentRequest extends ExpedienteRequest
     public function rules(): array
     {
         $base = [
-            'patient_id' => ['required', $this->existsInOrg('patients')],
+            // Pacientes dados de baja (deleted_at) o inactivos no reciben documentos nuevos.
+            'patient_id' => ['required', $this->existsInOrg('patients')->whereNull('deleted_at')->where('status', 'active')],
         ];
 
         return $base + match ($this->template()) {
@@ -111,9 +112,9 @@ class StoreDocumentRequest extends ExpedienteRequest
             }
 
             $patient = Patient::query()->find($this->input('patient_id'));
-            if ($patient && $this->boolean('register_acceptance') && $patient->birth_date && $patient->birth_date->age < 18
-                && mb_strtolower(trim((string) $this->input('accepted_by_name'))) === mb_strtolower($patient->full_name)) {
-                $v->errors()->add('accepted_by_name', 'El paciente es menor de edad: la autorización debe aceptarla su tutor.');
+            if ($patient && $this->boolean('register_acceptance')
+                && ($error = $this->minorAcceptanceError($patient, (string) $this->input('accepted_by_name'), 'la autorización'))) {
+                $v->errors()->add('accepted_by_name', $error);
             }
         });
     }

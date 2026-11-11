@@ -35,10 +35,9 @@ class BillingMetrics
             ->whereBetween('created_at', [$from, $to])
             ->sum('total');
 
-        $receivable = Invoice::query()
-            ->where('cfdi_type', CfdiType::Ingreso->value)
-            ->whereIn('fiscal_status', [FiscalStatus::PendienteTimbrado->value, FiscalStatus::Timbrada->value])
-            ->where('collection_status', '!=', 'pagada');
+        // Misma definición que el Dashboard (Invoice::receivable): sin borradores ni canceladas.
+        $receivable = Invoice::receivable()
+            ->where('cfdi_type', CfdiType::Ingreso->value);
         $receivableTotal = (clone $receivable)->sum('total');
         $applied = PaymentApplication::query()->whereNull('reversed_at')
             ->whereIn('invoice_id', (clone $receivable)->select('id'))->sum('applied_amount');

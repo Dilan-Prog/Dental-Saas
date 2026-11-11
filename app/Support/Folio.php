@@ -20,6 +20,25 @@ class Folio
     public const QUOTE = 'quote';
     public const INVOICE = 'invoice';
 
+    /**
+     * Folio de la serie indicada; si esa serie no tiene secuencia propia usa la general ('').
+     * Así el "próximo folio" que se edita en Configuración > Facturación sí es el que se emite.
+     */
+    public static function nextInSeries(string $documentType, ?string $series, ?string $organizationId = null): string
+    {
+        $series = (string) ($series ?? '');
+        $organizationId ??= DB::table('organizations')->orderBy('created_at')->value('id');
+
+        if ($series !== '' && ! DB::table('folio_sequences')
+            ->where('organization_id', $organizationId)
+            ->where('document_type', $documentType)
+            ->where('series', $series)->exists()) {
+            $series = '';
+        }
+
+        return self::next($documentType, $series, $organizationId);
+    }
+
     public static function next(string $documentType, string $series = '', ?string $organizationId = null): string
     {
         $organizationId ??= DB::table('organizations')->orderBy('created_at')->value('id');

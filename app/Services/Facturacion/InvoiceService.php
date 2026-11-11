@@ -164,10 +164,13 @@ class InvoiceService
 
             $lines = $this->normalizeLines($data['items']);
             $calc = InvoiceCalculator::calculate($lines);
+            if ($quote) {
+                $this->assertWithinQuote($quote, $calc['total']);
+            }
             $settings = Organization::current()?->fiscalSettings;
 
             $invoice = new Invoice([
-                'internal_folio' => Folio::next(Folio::INVOICE),
+                'internal_folio' => Folio::nextInSeries(Folio::INVOICE, $settings?->default_series),
                 'series' => $settings?->default_series ?: null,
                 'cfdi_type' => CfdiType::Ingreso,
                 'patient_id' => $patient->id,
@@ -208,6 +211,11 @@ class InvoiceService
             $patient = Patient::findOrFail($data['patient_id']);
             $lines = $this->normalizeLines($data['items']);
             $calc = InvoiceCalculator::calculate($lines);
+            if ($invoice->quote_id) {
+                $quote = Quote::findOrFail($invoice->quote_id);
+                $this->assertQuoteInvoiceable($quote, $patient, $invoice->id);
+                $this->assertWithinQuote($quote, $calc['total']);
+            }
 
             $invoice->fill([
                 'patient_id' => $patient->id,
@@ -428,7 +436,15 @@ class InvoiceService
     }
 
     /** Un presupuesto solo se factura si esta aprobado, es del paciente y no tiene otra factura vigente. */
-    protected function assertQuoteInvoiceable(Quote $quote, Patient $patient): void
+    /** No se factura más de lo aprobado en el presupuesto. */
+    protected function assertWithinQuote(Quote $quote, string $total): void
+    {
+        if (Money::cmp($total, (string) $quote->total) > 0) {
+            throw new BillingException('El total de la factura (' . Money::format($total) . ') excede el del presupuesto aprobado ' . $quote->folio . ' (' . Money::format((string) $quote->total) . ').');
+        }
+    }
+
+    protected function assertQuoteInvoiceable(Quote $quote, Patient $patient, ?string $ignoreInvoiceId = null): void
     {
         if ($quote->patient_id !== $patient->id) {
             throw new BillingException('El presupuesto no pertenece al paciente seleccionado.');
@@ -437,6 +453,7 @@ class InvoiceService
             throw new BillingException('Solo se pueden facturar presupuestos aprobados.');
         }
         $exists = Invoice::where('quote_id', $quote->id)
+            ->when($ignoreInvoiceId, fn ($q) => $q->where('id', '!=', $ignoreInvoiceId))
             ->where('fiscal_status', '!=', FiscalStatus::Cancelada->value)->exists();
         if ($exists) {
             throw new BillingException('El presupuesto ya tiene una factura vigente.');

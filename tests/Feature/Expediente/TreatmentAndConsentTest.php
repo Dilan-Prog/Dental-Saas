@@ -174,8 +174,14 @@ class TreatmentAndConsentTest extends ExpedienteTestCase
             'accepted_by_name' => 'Mateo Niño Pérez', 'method' => 'verbal_registrada',
         ])->assertSessionHasErrors('accepted_by_name');
 
+        // Sin tutor registrado no se puede aceptar a nombre de un menor.
         $this->post(route('expediente.consentimientos.store', $minor->id), [
-            'accepted_by_name' => 'Laura Pérez (madre)', 'method' => 'verbal_registrada',
+            'accepted_by_name' => 'Laura Pérez', 'method' => 'verbal_registrada',
+        ])->assertSessionHasErrors('accepted_by_name');
+
+        \App\Models\PatientGuardian::create(['patient_id' => $minor->id, 'full_name' => 'Laura Pérez', 'relationship' => 'Madre', 'phone' => '5511112222', 'is_primary' => true]);
+        $this->post(route('expediente.consentimientos.store', $minor->id), [
+            'accepted_by_name' => 'Laura Pérez', 'method' => 'verbal_registrada',
         ])->assertSessionHasNoErrors();
     }
 

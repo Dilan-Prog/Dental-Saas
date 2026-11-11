@@ -6,7 +6,10 @@
     var $ = function (s, r) { return (r || doc).querySelector(s); };
     var $$ = function (s, r) { return Array.prototype.slice.call((r || doc).querySelectorAll(s)); };
 
-    function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
+    function round2(n) {
+        var s = parseFloat(Number(n).toPrecision(15));
+        return Math.round(s * 100 + (s < 0 ? -1e-7 : 1e-7)) / 100;
+    }
     function money(n) {
         return '$' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }

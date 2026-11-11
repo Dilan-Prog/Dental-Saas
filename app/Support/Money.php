@@ -64,6 +64,23 @@ class Money
         return $withCode ? "{$text} {$currency}" : $text;
     }
 
+    /**
+     * Limpia un importe/cantidad escrito por una persona: quita $, espacios y las comas
+     * SOLO cuando son separadores de miles bien agrupados ("1,250.50" => "1250.50").
+     * Una coma decimal ("12,50" o "1,5") se deja intacta para que la validacion
+     * numerica la rechace, en vez de convertirla silenciosamente en 1250 o 15.
+     */
+    public static function cleanInput(string $value): string
+    {
+        $value = trim(str_replace(['$', ' ', "\u{00A0}"], '', $value));
+
+        if (preg_match('/^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$/', $value)) {
+            $value = str_replace(',', '', $value);
+        }
+
+        return $value;
+    }
+
     private static function norm(string|int|float|null $value): string
     {
         if ($value === null || $value === '') {

@@ -6,6 +6,7 @@ use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\InventoryStock;
+use App\Models\FinancialMovement;
 use App\Models\Invoice;
 use App\Models\Patient;
 use App\Models\Payment;
@@ -91,9 +92,10 @@ class DashboardService
 
         // Ingresos del dia vs ayer (pagos registrados, sin revertidos).
         if ($user->hasPermission('finanzas', 'ver') || $user->hasPermission('facturacion', 'ver')) {
-            $income = fn (Carbon $day) => (string) Payment::query()
-                ->where('status', 'registrado')
-                ->whereBetween('paid_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
+            // Misma fuente que Finanzas: movimientos de ingreso vigentes (sin revertidos ni reversiones).
+            $income = fn (Carbon $day) => (string) FinancialMovement::query()->effective()
+                ->where('direction', 'ingreso')
+                ->whereDate('occurred_on', $day->toDateString())
                 ->sum('amount');
             $today = Money::round($income(now()));
             $yesterday = Money::round($income(now()->subDay()));
@@ -278,10 +280,10 @@ class DashboardService
     public function incomeSeries(int $days = 30): array
     {
         $from = now()->subDays($days - 1)->startOfDay();
-        $rows = Payment::query()
-            ->where('status', 'registrado')
-            ->whereBetween('paid_at', [$from, now()->endOfDay()])
-            ->selectRaw('DATE(paid_at) as d, SUM(amount) as t')
+        $rows = FinancialMovement::query()->effective()
+            ->where('direction', 'ingreso')
+            ->whereBetween('occurred_on', [$from->toDateString(), now()->toDateString()])
+            ->selectRaw('financial_movements.occurred_on as d, SUM(financial_movements.amount) as t')
             ->groupBy('d')
             ->pluck('t', 'd');
 
@@ -301,9 +303,9 @@ class DashboardService
         }
 
         $prevFrom = $from->copy()->subDays($days);
-        $previous = Money::round((string) Payment::query()
-            ->where('status', 'registrado')
-            ->whereBetween('paid_at', [$prevFrom, $from->copy()->subSecond()])
+        $previous = Money::round((string) FinancialMovement::query()->effective()
+            ->where('direction', 'ingreso')
+            ->whereBetween('occurred_on', [$prevFrom->toDateString(), $from->copy()->subDay()->toDateString()])
             ->sum('amount'));
         $delta = null;
         if (Money::cmp($previous, '0') > 0) {

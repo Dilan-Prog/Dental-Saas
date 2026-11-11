@@ -36,6 +36,16 @@ class StoreClinicalNoteRequest extends ExpedienteRequest
             'responsible_doctor_member_id' => [
                 'required',
                 Rule::exists('doctor_profiles', 'member_id')->where('organization_id', $this->orgId()),
+                // El doctor responsable debe estar activo (miembro y usuario).
+                function ($attr, $value, $fail) {
+                    $active = \App\Models\OrganizationMember::query()
+                        ->whereKey($value)->where('is_active', true)
+                        ->whereHas('user', fn ($u) => $u->where('is_active', true))
+                        ->exists();
+                    if (! $active) {
+                        $fail('El doctor responsable no es válido.');
+                    }
+                },
             ],
             'treatment_id' => [
                 Rule::requiredIf(fn () => $this->input('note_type') === NoteType::Simple->value),

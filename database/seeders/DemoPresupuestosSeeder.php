@@ -102,6 +102,9 @@ class DemoPresupuestosSeeder extends Seeder
                 'folio' => Folio::next(Folio::PATIENT),
                 'full_name' => $name,
                 'sex' => 'unspecified',
+                // Datos obligatorios en el alta real (fecha de nacimiento y teléfono): deterministas por nombre.
+                'birth_date' => now()->subYears(25 + (crc32($name) % 30))->subDays(crc32($name) % 300)->toDateString(),
+                'phone' => '55'.str_pad((string) (crc32($name) % 100000000), 8, '0', STR_PAD_LEFT),
                 'status' => RecordStatus::Active,
             ]);
 

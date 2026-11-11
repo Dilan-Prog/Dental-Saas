@@ -184,7 +184,7 @@
                 <x-ui.field name="category_name" label="Nombre de la categoría" placeholder="Escribe la categoría" maxlength="100" list="category-list" autocomplete="off"
                             hint="Si no existe, se crea automáticamente." />
                 <div class="form-grid">
-                    <x-ui.field name="duration_minutes" label="Duración del tratamiento (min)" type="number" required min="1" max="1440" step="1" placeholder="Ej. 30" />
+                    <x-ui.field name="duration_minutes" label="Duración del tratamiento (min)" type="number" required min="15" max="480" step="5" placeholder="Ej. 30" />
                     <x-ui.field name="price" label="Precio (MXN, sin IVA)" type="number" required min="0" step="any" placeholder="Precio del tratamiento" />
                 </div>
                 <div class="form-grid">

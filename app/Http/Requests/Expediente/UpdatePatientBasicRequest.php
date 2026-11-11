@@ -28,6 +28,20 @@ class UpdatePatientBasicRequest extends ExpedienteRequest
         ];
     }
 
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $v) {
+            if ($v->errors()->has('birth_date') || ! ($patient = $this->routePatient())) {
+                return;
+            }
+            // Un paciente que pasa a ser menor de edad debe tener tutor (misma regla que Pacientes).
+            $birth = \Illuminate\Support\Carbon::parse($this->input('birth_date'));
+            if ($birth->age < 18 && ! \App\Models\PatientGuardian::query()->where('patient_id', $patient->id)->exists()) {
+                $v->errors()->add('birth_date', 'Con esa fecha el paciente sería menor de edad: registra primero a su tutor en Pacientes.');
+            }
+        });
+    }
+
     public function messages(): array
     {
         return [

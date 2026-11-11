@@ -44,7 +44,7 @@ abstract class InventarioRequest extends FormRequest
         }
         foreach ($this->numericFields as $f) {
             if ($this->has($f) && is_string($this->input($f))) {
-                $v = str_replace(['$', ',', ' '], '', trim($this->input($f)));
+                $v = \App\Support\Money::cleanInput($this->input($f));
                 $merge[$f] = $v === '' ? null : $v;
             }
         }
@@ -67,13 +67,13 @@ abstract class InventarioRequest extends FormRequest
     /** Cantidad positiva con hasta 4 decimales y 10 enteros (decimal 14,4). */
     protected function positiveQty(): array
     {
-        return ['required', 'numeric', 'gt:0', 'regex:/^\d{1,10}(\.\d{1,4})?$/'];
+        return ['bail', 'required', 'numeric', 'gt:0', 'regex:/^\d{1,10}(\.\d{1,4})?$/'];
     }
 
     /** Cantidad >= 0 opcional. */
     protected function nonNegativeQty(bool $required = false): array
     {
-        return [$required ? 'required' : 'nullable', 'numeric', 'min:0', 'regex:/^\d{1,10}(\.\d{1,4})?$/'];
+        return ['bail', $required ? 'required' : 'nullable', 'numeric', 'min:0', 'regex:/^\d{1,10}(\.\d{1,4})?$/'];
     }
 
     protected function itemExists(bool $onlyActive = true)

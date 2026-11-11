@@ -63,9 +63,8 @@ class StoreConsentRequest extends ExpedienteRequest
             }
 
             // Menores de edad: acepta el tutor, no el propio paciente.
-            if ($patient && $patient->birth_date && $patient->birth_date->age < 18
-                && mb_strtolower($this->input('accepted_by_name')) === mb_strtolower($patient->full_name)) {
-                $v->errors()->add('accepted_by_name', 'El paciente es menor de edad: el consentimiento debe aceptarlo su tutor.');
+            if ($error = $this->minorAcceptanceError($patient, (string) $this->input('accepted_by_name'), 'el consentimiento')) {
+                $v->errors()->add('accepted_by_name', $error);
             }
         });
     }

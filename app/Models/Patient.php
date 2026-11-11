@@ -151,7 +151,8 @@ class Patient extends BaseModel
         if ($term === '') {
             return $query;
         }
-        $like = '%'.$term.'%';
+        // Escapa los comodines de LIKE para que "%" o "_" se busquen literalmente.
+        $like = '%'.addcslashes($term, '\\%_').'%';
 
         return $query->where(function (Builder $w) use ($like) {
             $w->where('full_name', 'like', $like)

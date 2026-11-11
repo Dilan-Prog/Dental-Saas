@@ -38,10 +38,25 @@ class Rfc implements ValidationRule
         $fisica = "/^[A-ZÑ&]{4}{$fecha}{$homo}$/u";
         $moral = "/^[A-ZÑ&]{3}{$fecha}{$homo}$/u";
 
-        return match ($tipo) {
-            'fisica' => (bool) preg_match($fisica, $rfc),
-            'moral' => (bool) preg_match($moral, $rfc),
-            default => (bool) (preg_match($fisica, $rfc) || preg_match($moral, $rfc)),
+        $esFisica = (bool) preg_match($fisica, $rfc);
+        $esMoral = (bool) preg_match($moral, $rfc);
+
+        $valido = match ($tipo) {
+            'fisica' => $esFisica,
+            'moral' => $esMoral,
+            default => $esFisica || $esMoral,
         };
+
+        return $valido && self::fechaPosible($rfc, $esFisica ? 4 : 3);
+    }
+
+    /** La fecha AAMMDD embebida debe existir en el calendario (29 de febrero permitido: el siglo no se conoce). */
+    private static function fechaPosible(string $rfc, int $offset): bool
+    {
+        $mes = (int) substr($rfc, $offset + 2, 2);
+        $dia = (int) substr($rfc, $offset + 4, 2);
+        $max = [1 => 31, 2 => 29, 3 => 31, 4 => 30, 5 => 31, 6 => 30, 7 => 31, 8 => 31, 9 => 30, 10 => 31, 11 => 30, 12 => 31];
+
+        return isset($max[$mes]) && $dia >= 1 && $dia <= $max[$mes];
     }
 }

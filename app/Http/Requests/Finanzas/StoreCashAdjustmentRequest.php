@@ -16,7 +16,7 @@ class StoreCashAdjustmentRequest extends FinanzasRequest
     public function rules(): array
     {
         return [
-            'amount' => ['required', 'numeric', 'not_in:0', 'between:-99999999999.99,99999999999.99', 'decimal:0,2'],
+            'amount' => ['bail', 'required', 'numeric', 'not_in:0', 'between:-99999999999.99,99999999999.99', 'decimal:0,2'],
             'reason' => ['required', 'string', 'min:5', 'max:500'],
         ];
     }

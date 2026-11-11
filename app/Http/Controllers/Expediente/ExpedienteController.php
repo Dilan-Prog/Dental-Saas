@@ -50,7 +50,7 @@ class ExpedienteController extends BaseController
     public function show(Request $request, Patient $patient)
     {
         $tab = $request->query('tab', 'resumen');
-        if (! array_key_exists($tab, self::TABS)) {
+        if (! is_string($tab) || ! array_key_exists($tab, self::TABS)) {
             $tab = 'resumen';
         }
 
@@ -104,7 +104,8 @@ class ExpedienteController extends BaseController
         $patient->update([
             'full_name' => $data['full_name'],
             'birth_date' => $data['birth_date'],
-            'phone' => $digits ? substr($digits, 0, 2).' '.substr($digits, 2, 4).' '.substr($digits, 6) : $data['phone'],
+            // Mismo contrato que el módulo Pacientes: el teléfono se guarda solo con dígitos.
+            'phone' => $digits ?: $data['phone'],
             'email' => $data['email'] ?? null,
         ]);
 
