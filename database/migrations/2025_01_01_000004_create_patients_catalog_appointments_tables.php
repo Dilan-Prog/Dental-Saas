@@ -1,154 +1,226 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    private const RFC_REGEX = '^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$';
+
     public function up(): void
     {
-        DB::unprepared(<<<'SQL'
-CREATE TABLE patients (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL REFERENCES organizations(id),
-    folio varchar(20) NOT NULL,
-    full_name varchar(250) NOT NULL,
-    birth_date date,
-    sex sex_type NOT NULL DEFAULT 'unspecified',
-    phone varchar(30),
-    email varchar(254),
-    assigned_doctor_member_id uuid,
-    status record_status NOT NULL DEFAULT 'active',
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    deleted_at timestamptz,
-    anonymized_at timestamptz,
-    UNIQUE (organization_id, id),
-    UNIQUE (organization_id, folio),
-    FOREIGN KEY (organization_id, assigned_doctor_member_id) REFERENCES organization_members (organization_id, id)
-);
-CREATE INDEX idx_patients_name_trgm ON patients USING gin (full_name gin_trgm_ops);
-CREATE INDEX idx_patients_org_name ON patients (organization_id, full_name);
-CREATE INDEX idx_patients_org_phone ON patients (organization_id, phone);
-CREATE INDEX idx_patients_org_email ON patients (organization_id, email);
+        // ---------------------------- 3. PACIENTES ----------------------------
+        Schema::create('patients', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->string('folio', 20);
+            $table->string('full_name', 250);
+            $table->date('birth_date')->nullable();
+            $table->enum('sex', ['female', 'male', 'other', 'unspecified'])->default('unspecified');
+            $table->string('phone', 30)->nullable();
+            $table->string('email', 254)->nullable();
+            $table->uuid('assigned_doctor_member_id')->nullable();
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->dateTime('created_at')->useCurrent();
+            $table->dateTime('updated_at')->useCurrent()->useCurrentOnUpdate();
+            $table->dateTime('deleted_at')->nullable();
+            $table->dateTime('anonymized_at')->nullable();
 
-CREATE TABLE patient_fiscal_profiles (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    patient_id uuid NOT NULL,
-    rfc varchar(13) NOT NULL CHECK (rfc ~ '^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$'),
-    legal_name varchar(300) NOT NULL,
-    tax_regime_code varchar(3) NOT NULL,
-    fiscal_postal_code varchar(5) NOT NULL,
-    default_cfdi_use varchar(4),
-    is_default boolean NOT NULL DEFAULT true,
-    UNIQUE (organization_id, id),
-    FOREIGN KEY (organization_id, patient_id) REFERENCES patients (organization_id, id)
-);
+            $table->unique(['organization_id', 'id'], 'uq_patients_org_id');
+            $table->unique(['organization_id', 'folio'], 'uq_patients_org_folio');
+            $table->index(['organization_id', 'full_name'], 'idx_patients_name');
+            $table->index(['organization_id', 'phone'], 'idx_patients_phone');
+            $table->index(['organization_id', 'email'], 'idx_patients_email');
 
-CREATE TABLE patient_guardians (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    patient_id uuid NOT NULL,
-    full_name varchar(250) NOT NULL,
-    relationship varchar(60),
-    phone varchar(30),
-    email varchar(254),
-    is_primary boolean NOT NULL DEFAULT true,
-    FOREIGN KEY (organization_id, patient_id) REFERENCES patients (organization_id, id)
-);
+            $table->foreign('organization_id', 'fk_patients_org')->references('id')->on('organizations');
+            $table->foreign(['organization_id', 'assigned_doctor_member_id'], 'fk_patients_doctor')
+                ->references(['organization_id', 'id'])->on('organization_members');
+        });
 
-CREATE TABLE tax_profiles (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL REFERENCES organizations(id),
-    name varchar(100) NOT NULL,
-    tax_code varchar(3) NOT NULL DEFAULT '002',
-    rate numeric(7,6) NOT NULL CHECK (rate >= 0),
-    is_exempt boolean NOT NULL DEFAULT false,
-    status record_status NOT NULL DEFAULT 'active',
-    UNIQUE (organization_id, id),
-    UNIQUE (organization_id, name)
-);
+        Schema::create('patient_fiscal_profiles', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('patient_id');
+            $table->string('rfc', 13);
+            $table->string('legal_name', 300);
+            $table->string('tax_regime_code', 3);
+            $table->string('fiscal_postal_code', 5);
+            $table->string('default_cfdi_use', 4)->nullable();
+            $table->boolean('is_default')->default(true);
 
-CREATE TABLE treatment_categories (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL REFERENCES organizations(id),
-    name varchar(100) NOT NULL,
-    UNIQUE (organization_id, id),
-    UNIQUE (organization_id, name)
-);
+            $table->unique(['organization_id', 'id'], 'uq_pfp_org_id');
 
-CREATE TABLE treatments (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL REFERENCES organizations(id),
-    category_id uuid,
-    name varchar(200) NOT NULL,
-    duration_minutes integer NOT NULL CHECK (duration_minutes > 0),
-    sat_product_key varchar(8),
-    sat_unit_key varchar(3) DEFAULT 'E48',
-    price numeric(14,4) NOT NULL CHECK (price >= 0),
-    currency char(3) NOT NULL DEFAULT 'MXN',
-    tax_profile_id uuid,
-    status record_status NOT NULL DEFAULT 'active',
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (organization_id, id),
-    FOREIGN KEY (organization_id, category_id) REFERENCES treatment_categories (organization_id, id),
-    FOREIGN KEY (organization_id, tax_profile_id) REFERENCES tax_profiles (organization_id, id)
-);
-CREATE INDEX idx_treatments_org_name ON treatments (organization_id, name);
+            $table->foreign(['organization_id', 'patient_id'], 'fk_pfp_patient')
+                ->references(['organization_id', 'id'])->on('patients');
+        });
+        DB::statement("ALTER TABLE patient_fiscal_profiles ADD CONSTRAINT chk_pfp_rfc CHECK (rfc REGEXP '" . self::RFC_REGEX . "')");
 
-CREATE TABLE appointments (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL REFERENCES organizations(id),
-    branch_id uuid NOT NULL,
-    patient_id uuid NOT NULL,
-    doctor_member_id uuid NOT NULL,
-    treatment_id uuid,
-    starts_at timestamptz NOT NULL,
-    ends_at timestamptz NOT NULL,
-    status appointment_status NOT NULL DEFAULT 'pendiente',
-    notes text,
-    created_by uuid REFERENCES users(id),
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (organization_id, id),
-    CHECK (ends_at > starts_at),
-    FOREIGN KEY (organization_id, branch_id) REFERENCES branches (organization_id, id),
-    FOREIGN KEY (organization_id, patient_id) REFERENCES patients (organization_id, id),
-    FOREIGN KEY (organization_id, doctor_member_id) REFERENCES organization_members (organization_id, id),
-    FOREIGN KEY (organization_id, treatment_id) REFERENCES treatments (organization_id, id),
-    CONSTRAINT appointments_no_doctor_overlap EXCLUDE USING gist (
-        doctor_member_id WITH =, tstzrange(starts_at, ends_at) WITH &&
-    ) WHERE (status IN ('pendiente', 'confirmada', 'en_curso')),
-    CONSTRAINT appointments_no_patient_overlap EXCLUDE USING gist (
-        patient_id WITH =, tstzrange(starts_at, ends_at) WITH &&
-    ) WHERE (status IN ('pendiente', 'confirmada', 'en_curso'))
-);
-CREATE INDEX idx_appt_branch_start ON appointments (organization_id, branch_id, starts_at);
-CREATE INDEX idx_appt_doctor_start ON appointments (organization_id, doctor_member_id, starts_at);
-CREATE INDEX idx_appt_patient_start ON appointments (organization_id, patient_id, starts_at);
-CREATE INDEX idx_appt_status_start ON appointments (organization_id, status, starts_at);
+        Schema::create('patient_guardians', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('patient_id');
+            $table->string('full_name', 250);
+            $table->string('relationship', 60)->nullable();
+            $table->string('phone', 30)->nullable();
+            $table->string('email', 254)->nullable();
+            $table->boolean('is_primary')->default(true);
 
-CREATE TABLE appointment_status_history (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    appointment_id uuid NOT NULL,
-    from_status appointment_status,
-    to_status appointment_status NOT NULL,
-    old_starts_at timestamptz,
-    new_starts_at timestamptz,
-    reason text,
-    actor_user_id uuid REFERENCES users(id),
-    created_at timestamptz NOT NULL DEFAULT now(),
-    FOREIGN KEY (organization_id, appointment_id) REFERENCES appointments (organization_id, id)
-);
-CREATE INDEX idx_appt_hist ON appointment_status_history (appointment_id, created_at);
-SQL);
+            $table->foreign(['organization_id', 'patient_id'], 'fk_pguard_patient')
+                ->references(['organization_id', 'id'])->on('patients');
+        });
+
+        // ------------------- 4. CATÁLOGO DE TRATAMIENTOS ----------------------
+        Schema::create('tax_profiles', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->string('name', 100);
+            $table->string('tax_code', 3)->default('002');
+            $table->decimal('rate', 7, 6);
+            $table->boolean('is_exempt')->default(false);
+            $table->enum('status', ['active', 'inactive'])->default('active');
+
+            $table->unique(['organization_id', 'id'], 'uq_taxprof_org_id');
+            $table->unique(['organization_id', 'name'], 'uq_taxprof_org_name');
+
+            $table->foreign('organization_id', 'fk_taxprof_org')->references('id')->on('organizations');
+        });
+        DB::statement('ALTER TABLE tax_profiles ADD CONSTRAINT chk_taxprof_rate CHECK (rate >= 0)');
+
+        Schema::create('treatment_categories', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->string('name', 100);
+
+            $table->unique(['organization_id', 'id'], 'uq_trcat_org_id');
+            $table->unique(['organization_id', 'name'], 'uq_trcat_org_name');
+
+            $table->foreign('organization_id', 'fk_trcat_org')->references('id')->on('organizations');
+        });
+
+        Schema::create('treatments', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('category_id')->nullable();
+            $table->string('name', 200);
+            $table->integer('duration_minutes');
+            $table->string('sat_product_key', 8)->nullable();
+            $table->string('sat_unit_key', 3)->nullable()->default('E48');
+            $table->decimal('price', 14, 4);
+            $table->char('currency', 3)->default('MXN');
+            $table->uuid('tax_profile_id')->nullable();
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->dateTime('created_at')->useCurrent();
+            $table->dateTime('updated_at')->useCurrent()->useCurrentOnUpdate();
+
+            $table->unique(['organization_id', 'id'], 'uq_treatments_org_id');
+            $table->index(['organization_id', 'name'], 'idx_treatments_name');
+
+            $table->foreign('organization_id', 'fk_treatments_org')->references('id')->on('organizations');
+            $table->foreign(['organization_id', 'category_id'], 'fk_treatments_cat')
+                ->references(['organization_id', 'id'])->on('treatment_categories');
+            $table->foreign(['organization_id', 'tax_profile_id'], 'fk_treatments_tax')
+                ->references(['organization_id', 'id'])->on('tax_profiles');
+        });
+        DB::statement('ALTER TABLE treatments ADD CONSTRAINT chk_treatments_duration CHECK (duration_minutes > 0)');
+        DB::statement('ALTER TABLE treatments ADD CONSTRAINT chk_treatments_price CHECK (price >= 0)');
+
+        // ------------------------ 5. AGENDA Y CITAS ---------------------------
+        Schema::create('appointments', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('branch_id');
+            $table->uuid('patient_id');
+            $table->uuid('doctor_member_id');
+            $table->uuid('treatment_id')->nullable();
+            $table->dateTime('starts_at');
+            $table->dateTime('ends_at');
+            $table->enum('status', ['pendiente', 'confirmada', 'en_curso', 'completada', 'cancelada', 'no_asistio'])
+                ->default('pendiente');
+            $table->text('notes')->nullable();
+            $table->uuid('created_by')->nullable();
+            $table->dateTime('created_at')->useCurrent();
+            $table->dateTime('updated_at')->useCurrent()->useCurrentOnUpdate();
+
+            $table->unique(['organization_id', 'id'], 'uq_appt_org_id');
+            $table->index(['organization_id', 'branch_id', 'starts_at'], 'idx_appt_branch_start');
+            $table->index(['organization_id', 'doctor_member_id', 'starts_at'], 'idx_appt_doctor_start');
+            $table->index(['organization_id', 'patient_id', 'starts_at'], 'idx_appt_patient_start');
+            $table->index(['organization_id', 'status', 'starts_at'], 'idx_appt_status_start');
+
+            $table->foreign('organization_id', 'fk_appt_org')->references('id')->on('organizations');
+            $table->foreign(['organization_id', 'branch_id'], 'fk_appt_branch')
+                ->references(['organization_id', 'id'])->on('branches');
+            $table->foreign(['organization_id', 'patient_id'], 'fk_appt_patient')
+                ->references(['organization_id', 'id'])->on('patients');
+            $table->foreign(['organization_id', 'doctor_member_id'], 'fk_appt_doctor')
+                ->references(['organization_id', 'id'])->on('organization_members');
+            $table->foreign(['organization_id', 'treatment_id'], 'fk_appt_treatment')
+                ->references(['organization_id', 'id'])->on('treatments');
+            $table->foreign('created_by', 'fk_appt_created_by')->references('id')->on('users');
+        });
+        DB::statement('ALTER TABLE appointments ADD CONSTRAINT chk_appt_time CHECK (ends_at > starts_at)');
+
+        // Anti-empalme (sustituye EXCLUDE gist): doctor y paciente, solo citas activas.
+        $overlapBody = <<<'SQL'
+BEGIN
+    IF NEW.status IN ('pendiente', 'confirmada', 'en_curso') THEN
+        IF EXISTS (
+            SELECT 1 FROM appointments a
+             WHERE a.doctor_member_id = NEW.doctor_member_id
+               AND a.id <> NEW.id
+               AND a.status IN ('pendiente', 'confirmada', 'en_curso')
+               AND a.starts_at < NEW.ends_at AND a.ends_at > NEW.starts_at
+        ) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'appointments_no_doctor_overlap: el doctor ya tiene una cita en ese horario';
+        END IF;
+        IF EXISTS (
+            SELECT 1 FROM appointments a
+             WHERE a.patient_id = NEW.patient_id
+               AND a.id <> NEW.id
+               AND a.status IN ('pendiente', 'confirmada', 'en_curso')
+               AND a.starts_at < NEW.ends_at AND a.ends_at > NEW.starts_at
+        ) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'appointments_no_patient_overlap: el paciente ya tiene una cita en ese horario';
+        END IF;
+    END IF;
+END
+SQL;
+        DB::unprepared('CREATE TRIGGER trg_appointments_overlap_bi BEFORE INSERT ON appointments FOR EACH ROW ' . $overlapBody);
+        DB::unprepared('CREATE TRIGGER trg_appointments_overlap_bu BEFORE UPDATE ON appointments FOR EACH ROW ' . $overlapBody);
+
+        Schema::create('appointment_status_history', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('appointment_id');
+            $table->enum('from_status', ['pendiente', 'confirmada', 'en_curso', 'completada', 'cancelada', 'no_asistio'])->nullable();
+            $table->enum('to_status', ['pendiente', 'confirmada', 'en_curso', 'completada', 'cancelada', 'no_asistio']);
+            $table->dateTime('old_starts_at')->nullable();
+            $table->dateTime('new_starts_at')->nullable();
+            $table->text('reason')->nullable();
+            $table->uuid('actor_user_id')->nullable();
+            $table->dateTime('created_at')->useCurrent();
+
+            $table->index(['appointment_id', 'created_at'], 'idx_appt_hist');
+
+            $table->foreign(['organization_id', 'appointment_id'], 'fk_appt_hist_appt')
+                ->references(['organization_id', 'id'])->on('appointments');
+            $table->foreign('actor_user_id', 'fk_appt_hist_actor')->references('id')->on('users');
+        });
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TABLE IF EXISTS appointment_status_history, appointments, treatments, treatment_categories, tax_profiles, patient_guardians, patient_fiscal_profiles, patients CASCADE');
+        Schema::disableForeignKeyConstraints();
+        DB::unprepared('DROP TRIGGER IF EXISTS trg_appointments_overlap_bi');
+        DB::unprepared('DROP TRIGGER IF EXISTS trg_appointments_overlap_bu');
+        foreach ([
+            'appointment_status_history', 'appointments', 'treatments', 'treatment_categories',
+            'tax_profiles', 'patient_guardians', 'patient_fiscal_profiles', 'patients',
+        ] as $t) {
+            Schema::dropIfExists($t);
+        }
+        Schema::enableForeignKeyConstraints();
     }
 };

@@ -1,247 +1,306 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::unprepared(<<<'SQL'
--- ===================== 6. EXPEDIENTE CLÍNICO =====================
-CREATE TABLE medical_records (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    patient_id uuid NOT NULL,
-    allergies text,
-    medical_history text,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (organization_id, id),
-    UNIQUE (organization_id, patient_id),
-    FOREIGN KEY (organization_id, patient_id) REFERENCES patients (organization_id, id)
-);
+        // ===================== 6. EXPEDIENTE CLÍNICO =====================
+        Schema::create('medical_records', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('patient_id');
+            $table->text('allergies')->nullable();
+            $table->text('medical_history')->nullable();
+            $table->dateTime('created_at')->useCurrent();
 
-CREATE TABLE clinical_encounters (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    medical_record_id uuid NOT NULL,
-    appointment_id uuid,
-    branch_id uuid NOT NULL,
-    doctor_member_id uuid NOT NULL,
-    occurred_at timestamptz NOT NULL,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (organization_id, id),
-    FOREIGN KEY (organization_id, medical_record_id) REFERENCES medical_records (organization_id, id),
-    FOREIGN KEY (organization_id, appointment_id) REFERENCES appointments (organization_id, id),
-    FOREIGN KEY (organization_id, branch_id) REFERENCES branches (organization_id, id),
-    FOREIGN KEY (organization_id, doctor_member_id) REFERENCES organization_members (organization_id, id)
-);
-CREATE INDEX idx_encounters_record_occurred ON clinical_encounters (organization_id, medical_record_id, occurred_at);
+            $table->unique(['organization_id', 'id'], 'uq_medical_records_org_id');
+            $table->unique(['organization_id', 'patient_id'], 'uq_medical_records_org_patient');
+            $table->foreign(['organization_id', 'patient_id'], 'fk_mr_patient')
+                ->references(['organization_id', 'id'])->on('patients');
+        });
 
--- quote_item_id: la FK a quote_items se agrega en la migración de presupuestos.
-CREATE TABLE patient_treatments (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    patient_id uuid NOT NULL,
-    treatment_id uuid NOT NULL,
-    quote_item_id uuid,
-    tooth_fdi smallint,
-    status planned_treatment_status NOT NULL DEFAULT 'planeado',
-    started_at timestamptz,
-    completed_at timestamptz,
-    UNIQUE (organization_id, id),
-    FOREIGN KEY (organization_id, patient_id) REFERENCES patients (organization_id, id),
-    FOREIGN KEY (organization_id, treatment_id) REFERENCES treatments (organization_id, id)
-);
+        Schema::create('clinical_encounters', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('medical_record_id');
+            $table->uuid('appointment_id')->nullable();
+            $table->uuid('branch_id');
+            $table->uuid('doctor_member_id');
+            $table->dateTime('occurred_at');
+            $table->dateTime('created_at')->useCurrent();
 
-CREATE TABLE clinical_notes (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    encounter_id uuid NOT NULL,
-    note_type note_type NOT NULL DEFAULT 'simple',
-    author_member_id uuid NOT NULL,
-    responsible_doctor_member_id uuid NOT NULL,
-    treatment_id uuid,
-    tooth_fdi smallint,
-    appointment_id uuid,
-    subjective text,
-    objective text,
-    analysis text,
-    plan text,
-    prescription_text text,
-    status signing_status NOT NULL DEFAULT 'borrador',
-    signed_at timestamptz,
-    signed_by_member_id uuid,
-    content_hash char(64),
-    signature_mechanism varchar(40),
-    created_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (organization_id, id),
-    CHECK (status = 'borrador' OR (signed_at IS NOT NULL AND signed_by_member_id IS NOT NULL AND content_hash IS NOT NULL)),
-    FOREIGN KEY (organization_id, encounter_id) REFERENCES clinical_encounters (organization_id, id),
-    FOREIGN KEY (organization_id, author_member_id) REFERENCES organization_members (organization_id, id),
-    FOREIGN KEY (organization_id, responsible_doctor_member_id) REFERENCES organization_members (organization_id, id),
-    FOREIGN KEY (organization_id, signed_by_member_id) REFERENCES organization_members (organization_id, id),
-    FOREIGN KEY (organization_id, treatment_id) REFERENCES treatments (organization_id, id),
-    FOREIGN KEY (organization_id, appointment_id) REFERENCES appointments (organization_id, id)
-);
-CREATE INDEX idx_clinical_notes_encounter ON clinical_notes (organization_id, encounter_id);
+            $table->unique(['organization_id', 'id'], 'uq_clinical_encounters_org_id');
+            $table->index(['organization_id', 'medical_record_id', 'occurred_at'], 'idx_enc_record_occurred');
+            $table->foreign(['organization_id', 'medical_record_id'], 'fk_enc_record')
+                ->references(['organization_id', 'id'])->on('medical_records');
+            $table->foreign(['organization_id', 'appointment_id'], 'fk_enc_appt')
+                ->references(['organization_id', 'id'])->on('appointments');
+            $table->foreign(['organization_id', 'branch_id'], 'fk_enc_branch')
+                ->references(['organization_id', 'id'])->on('branches');
+            $table->foreign(['organization_id', 'doctor_member_id'], 'fk_enc_doctor')
+                ->references(['organization_id', 'id'])->on('organization_members');
+        });
 
-CREATE TABLE clinical_note_addenda (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    note_id uuid NOT NULL,
-    version_number integer NOT NULL,
-    content text NOT NULL,
-    reason text NOT NULL,
-    author_member_id uuid NOT NULL,
-    content_hash char(64) NOT NULL,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (note_id, version_number),
-    FOREIGN KEY (organization_id, note_id) REFERENCES clinical_notes (organization_id, id),
-    FOREIGN KEY (organization_id, author_member_id) REFERENCES organization_members (organization_id, id)
-);
+        // quote_item_id: la FK a quote_items se agrega en la migración de presupuestos.
+        Schema::create('patient_treatments', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('patient_id');
+            $table->uuid('treatment_id');
+            $table->uuid('quote_item_id')->nullable();
+            $table->smallInteger('tooth_fdi')->nullable();
+            $table->enum('status', ['planeado', 'en_progreso', 'realizado', 'cancelado'])->default('planeado');
+            $table->dateTime('started_at')->nullable();
+            $table->dateTime('completed_at')->nullable();
 
--- ======================= 7. ODONTOGRAMA ==========================
-CREATE TABLE tooth_findings (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    patient_id uuid NOT NULL,
-    tooth_fdi smallint NOT NULL,
-    dentition dentition_type NOT NULL,
-    condition tooth_condition NOT NULL,
-    surfaces varchar(10)[],
-    encounter_id uuid,
-    patient_treatment_id uuid,
-    author_member_id uuid NOT NULL,
-    recorded_at timestamptz NOT NULL DEFAULT now(),
-    superseded_at timestamptz,
-    CONSTRAINT tooth_findings_fdi_check CHECK (
-        (dentition = 'permanente' AND (
-            tooth_fdi BETWEEN 11 AND 18 OR tooth_fdi BETWEEN 21 AND 28
-            OR tooth_fdi BETWEEN 31 AND 38 OR tooth_fdi BETWEEN 41 AND 48))
-        OR
-        (dentition = 'temporal' AND (
-            tooth_fdi BETWEEN 51 AND 55 OR tooth_fdi BETWEEN 61 AND 65
-            OR tooth_fdi BETWEEN 71 AND 75 OR tooth_fdi BETWEEN 81 AND 85))
-    ),
-    FOREIGN KEY (organization_id, patient_id) REFERENCES patients (organization_id, id),
-    FOREIGN KEY (organization_id, encounter_id) REFERENCES clinical_encounters (organization_id, id),
-    FOREIGN KEY (organization_id, patient_treatment_id) REFERENCES patient_treatments (organization_id, id),
-    FOREIGN KEY (organization_id, author_member_id) REFERENCES organization_members (organization_id, id)
-);
-CREATE INDEX idx_tooth_findings_history ON tooth_findings (organization_id, patient_id, tooth_fdi, recorded_at);
-CREATE UNIQUE INDEX uq_tooth_findings_current ON tooth_findings (organization_id, patient_id, tooth_fdi) WHERE superseded_at IS NULL;
+            $table->unique(['organization_id', 'id'], 'uq_patient_treatments_org_id');
+            $table->foreign(['organization_id', 'patient_id'], 'fk_pt_patient')
+                ->references(['organization_id', 'id'])->on('patients');
+            $table->foreign(['organization_id', 'treatment_id'], 'fk_pt_treatment')
+                ->references(['organization_id', 'id'])->on('treatments');
+        });
 
--- ===================== 8. ARCHIVOS CLÍNICOS ======================
-CREATE TABLE clinical_files (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    patient_id uuid NOT NULL,
-    file_type clinical_file_type NOT NULL,
-    display_name varchar(255) NOT NULL,
-    mime_type varchar(100) NOT NULL,
-    size_bytes bigint NOT NULL CHECK (size_bytes > 0),
-    storage_key text NOT NULL,
-    sha256 char(64),
-    uploaded_by_member_id uuid NOT NULL,
-    encounter_id uuid,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    deleted_at timestamptz,
-    UNIQUE (organization_id, id),
-    UNIQUE (organization_id, storage_key),
-    FOREIGN KEY (organization_id, patient_id) REFERENCES patients (organization_id, id),
-    FOREIGN KEY (organization_id, uploaded_by_member_id) REFERENCES organization_members (organization_id, id),
-    FOREIGN KEY (organization_id, encounter_id) REFERENCES clinical_encounters (organization_id, id)
-);
-CREATE INDEX idx_clinical_files_patient_type ON clinical_files (organization_id, patient_id, file_type);
+        Schema::create('clinical_notes', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('encounter_id');
+            $table->enum('note_type', ['simple', 'soap'])->default('simple');
+            $table->uuid('author_member_id');
+            $table->uuid('responsible_doctor_member_id');
+            $table->uuid('treatment_id')->nullable();
+            $table->smallInteger('tooth_fdi')->nullable();
+            $table->uuid('appointment_id')->nullable();
+            $table->text('subjective')->nullable();
+            $table->text('objective')->nullable();
+            $table->text('analysis')->nullable();
+            $table->text('plan')->nullable();
+            $table->text('prescription_text')->nullable();
+            $table->enum('status', ['borrador', 'firmada'])->default('borrador');
+            $table->dateTime('signed_at')->nullable();
+            $table->uuid('signed_by_member_id')->nullable();
+            $table->char('content_hash', 64)->nullable();
+            $table->string('signature_mechanism', 40)->nullable();
+            $table->dateTime('created_at')->useCurrent();
 
-CREATE TABLE consent_acceptances (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    patient_id uuid NOT NULL,
-    clinical_file_id uuid,
-    accepted_at timestamptz NOT NULL,
-    accepted_by_name varchar(250) NOT NULL,
-    method varchar(40) NOT NULL,
-    witness_member_id uuid,
-    content_hash char(64),
-    FOREIGN KEY (organization_id, patient_id) REFERENCES patients (organization_id, id),
-    FOREIGN KEY (organization_id, clinical_file_id) REFERENCES clinical_files (organization_id, id),
-    FOREIGN KEY (organization_id, witness_member_id) REFERENCES organization_members (organization_id, id)
-);
+            $table->unique(['organization_id', 'id'], 'uq_clinical_notes_org_id');
+            $table->index(['organization_id', 'encounter_id'], 'idx_cn_encounter');
+            $table->foreign(['organization_id', 'encounter_id'], 'fk_cn_encounter')
+                ->references(['organization_id', 'id'])->on('clinical_encounters');
+            $table->foreign(['organization_id', 'author_member_id'], 'fk_cn_author')
+                ->references(['organization_id', 'id'])->on('organization_members');
+            $table->foreign(['organization_id', 'responsible_doctor_member_id'], 'fk_cn_responsible')
+                ->references(['organization_id', 'id'])->on('organization_members');
+            $table->foreign(['organization_id', 'signed_by_member_id'], 'fk_cn_signed_by')
+                ->references(['organization_id', 'id'])->on('organization_members');
+            $table->foreign(['organization_id', 'treatment_id'], 'fk_cn_treatment')
+                ->references(['organization_id', 'id'])->on('treatments');
+            $table->foreign(['organization_id', 'appointment_id'], 'fk_cn_appt')
+                ->references(['organization_id', 'id'])->on('appointments');
+        });
+        DB::statement("ALTER TABLE clinical_notes ADD CONSTRAINT chk_cn_signed_fields CHECK (status = 'borrador' OR (signed_at IS NOT NULL AND signed_by_member_id IS NOT NULL AND content_hash IS NOT NULL))");
 
--- ================= 9. RECETAS Y MEDICAMENTOS =====================
-CREATE TABLE medications (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid REFERENCES organizations(id),
-    name varchar(200) NOT NULL,
-    active_ingredient varchar(200),
-    strength varchar(80),
-    presentation varchar(120),
-    status record_status NOT NULL DEFAULT 'active',
-    UNIQUE (organization_id, id)
-);
+        Schema::create('clinical_note_addenda', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('note_id');
+            $table->integer('version_number');
+            $table->text('content');
+            $table->text('reason');
+            $table->uuid('author_member_id');
+            $table->char('content_hash', 64);
+            $table->dateTime('created_at')->useCurrent();
 
-CREATE TABLE prescriptions (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    folio varchar(20) NOT NULL,
-    patient_id uuid NOT NULL,
-    doctor_member_id uuid NOT NULL,
-    issued_on date NOT NULL,
-    diagnosis text,
-    general_instructions text,
-    status signing_status NOT NULL DEFAULT 'borrador',
-    signed_at timestamptz,
-    doctor_name_snapshot varchar(200),
-    doctor_license_snapshot varchar(30),
-    content_hash char(64),
-    pdf_storage_key text,
-    repeated_from_id uuid,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (organization_id, id),
-    UNIQUE (organization_id, folio),
-    FOREIGN KEY (organization_id, patient_id) REFERENCES patients (organization_id, id),
-    FOREIGN KEY (organization_id, doctor_member_id) REFERENCES organization_members (organization_id, id),
-    FOREIGN KEY (organization_id, repeated_from_id) REFERENCES prescriptions (organization_id, id)
-);
-CREATE INDEX idx_prescriptions_patient_issued ON prescriptions (organization_id, patient_id, issued_on);
+            $table->unique(['note_id', 'version_number'], 'uq_cna_note_version');
+            $table->foreign(['organization_id', 'note_id'], 'fk_cna_note')
+                ->references(['organization_id', 'id'])->on('clinical_notes');
+            $table->foreign(['organization_id', 'author_member_id'], 'fk_cna_author')
+                ->references(['organization_id', 'id'])->on('organization_members');
+        });
 
-CREATE TABLE prescription_items (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    prescription_id uuid NOT NULL,
-    line_number smallint NOT NULL,
-    medication_id uuid,
-    medication_name varchar(200) NOT NULL,
-    strength varchar(80),
-    presentation varchar(120),
-    dose varchar(120) NOT NULL,
-    route varchar(60),
-    frequency varchar(120) NOT NULL,
-    duration varchar(120),
-    instructions text,
-    UNIQUE (prescription_id, line_number),
-    FOREIGN KEY (organization_id, prescription_id) REFERENCES prescriptions (organization_id, id),
-    FOREIGN KEY (organization_id, medication_id) REFERENCES medications (organization_id, id)
-);
+        // ======================= 7. ODONTOGRAMA ==========================
+        Schema::create('tooth_findings', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('patient_id');
+            $table->smallInteger('tooth_fdi');
+            $table->enum('dentition', ['permanente', 'temporal']);
+            $table->enum('condition', ['sano', 'caries', 'endodoncia', 'restauracion', 'ausente']);
+            $table->json('surfaces')->nullable();
+            $table->uuid('encounter_id')->nullable();
+            $table->uuid('patient_treatment_id')->nullable();
+            $table->uuid('author_member_id');
+            $table->dateTime('recorded_at')->useCurrent();
+            $table->dateTime('superseded_at')->nullable();
 
--- outbox_event_id: la FK a outbox_events se agrega en la migración de notificaciones.
-CREATE TABLE prescription_deliveries (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid NOT NULL,
-    prescription_id uuid NOT NULL,
-    channel varchar(20) NOT NULL,
-    sent_at timestamptz,
-    actor_user_id uuid REFERENCES users(id),
-    outbox_event_id uuid,
-    FOREIGN KEY (organization_id, prescription_id) REFERENCES prescriptions (organization_id, id)
-);
-SQL);
+            $table->index(['organization_id', 'patient_id', 'tooth_fdi', 'recorded_at'], 'idx_tf_history');
+            $table->foreign(['organization_id', 'patient_id'], 'fk_tf_patient')
+                ->references(['organization_id', 'id'])->on('patients');
+            $table->foreign(['organization_id', 'encounter_id'], 'fk_tf_encounter')
+                ->references(['organization_id', 'id'])->on('clinical_encounters');
+            $table->foreign(['organization_id', 'patient_treatment_id'], 'fk_tf_pt')
+                ->references(['organization_id', 'id'])->on('patient_treatments');
+            $table->foreign(['organization_id', 'author_member_id'], 'fk_tf_author')
+                ->references(['organization_id', 'id'])->on('organization_members');
+        });
+        DB::statement("ALTER TABLE tooth_findings ADD CONSTRAINT chk_tf_fdi CHECK (
+            (dentition = 'permanente' AND (
+                tooth_fdi BETWEEN 11 AND 18 OR tooth_fdi BETWEEN 21 AND 28
+                OR tooth_fdi BETWEEN 31 AND 38 OR tooth_fdi BETWEEN 41 AND 48))
+            OR
+            (dentition = 'temporal' AND (
+                tooth_fdi BETWEEN 51 AND 55 OR tooth_fdi BETWEEN 61 AND 65
+                OR tooth_fdi BETWEEN 71 AND 75 OR tooth_fdi BETWEEN 81 AND 85))
+        )");
+        // Único parcial (estado actual): columna generada NULL cuando el hallazgo fue reemplazado.
+        DB::statement("ALTER TABLE tooth_findings
+            ADD COLUMN current_key VARCHAR(80) GENERATED ALWAYS AS (
+                IF(superseded_at IS NULL, CONCAT(organization_id, ':', patient_id, ':', tooth_fdi), NULL)
+            ) VIRTUAL,
+            ADD UNIQUE KEY uq_tooth_current (current_key)");
+
+        // ===================== 8. ARCHIVOS CLÍNICOS ======================
+        Schema::create('clinical_files', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('patient_id');
+            $table->enum('file_type', ['radiografia', 'consentimiento', 'fotografia_intraoral', 'otro']);
+            $table->string('display_name', 255);
+            $table->string('mime_type', 100);
+            $table->bigInteger('size_bytes');
+            $table->string('storage_key', 500);
+            $table->char('sha256', 64)->nullable();
+            $table->uuid('uploaded_by_member_id');
+            $table->uuid('encounter_id')->nullable();
+            $table->dateTime('created_at')->useCurrent();
+            $table->dateTime('deleted_at')->nullable();
+
+            $table->unique(['organization_id', 'id'], 'uq_clinical_files_org_id');
+            $table->unique(['organization_id', 'storage_key'], 'uq_cf_org_storage_key');
+            $table->index(['organization_id', 'patient_id', 'file_type'], 'idx_cf_patient_type');
+            $table->foreign(['organization_id', 'patient_id'], 'fk_cf_patient')
+                ->references(['organization_id', 'id'])->on('patients');
+            $table->foreign(['organization_id', 'uploaded_by_member_id'], 'fk_cf_uploader')
+                ->references(['organization_id', 'id'])->on('organization_members');
+            $table->foreign(['organization_id', 'encounter_id'], 'fk_cf_encounter')
+                ->references(['organization_id', 'id'])->on('clinical_encounters');
+        });
+        DB::statement('ALTER TABLE clinical_files ADD CONSTRAINT chk_cf_size CHECK (size_bytes > 0)');
+
+        Schema::create('consent_acceptances', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('patient_id');
+            $table->uuid('clinical_file_id')->nullable();
+            $table->dateTime('accepted_at');
+            $table->string('accepted_by_name', 250);
+            $table->string('method', 40);
+            $table->uuid('witness_member_id')->nullable();
+            $table->char('content_hash', 64)->nullable();
+
+            $table->foreign(['organization_id', 'patient_id'], 'fk_ca_patient')
+                ->references(['organization_id', 'id'])->on('patients');
+            $table->foreign(['organization_id', 'clinical_file_id'], 'fk_ca_file')
+                ->references(['organization_id', 'id'])->on('clinical_files');
+            $table->foreign(['organization_id', 'witness_member_id'], 'fk_ca_witness')
+                ->references(['organization_id', 'id'])->on('organization_members');
+        });
+
+        // ================= 9. RECETAS Y MEDICAMENTOS =====================
+        Schema::create('medications', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id')->nullable();
+            $table->string('name', 200);
+            $table->string('active_ingredient', 200)->nullable();
+            $table->string('strength', 80)->nullable();
+            $table->string('presentation', 120)->nullable();
+            $table->enum('status', ['active', 'inactive'])->default('active');
+
+            $table->unique(['organization_id', 'id'], 'uq_medications_org_id');
+            $table->foreign('organization_id', 'fk_med_org')->references('id')->on('organizations');
+        });
+
+        Schema::create('prescriptions', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->string('folio', 20);
+            $table->uuid('patient_id');
+            $table->uuid('doctor_member_id');
+            $table->date('issued_on');
+            $table->text('diagnosis')->nullable();
+            $table->text('general_instructions')->nullable();
+            $table->enum('status', ['borrador', 'firmada'])->default('borrador');
+            $table->dateTime('signed_at')->nullable();
+            $table->string('doctor_name_snapshot', 200)->nullable();
+            $table->string('doctor_license_snapshot', 30)->nullable();
+            $table->char('content_hash', 64)->nullable();
+            $table->text('pdf_storage_key')->nullable();
+            $table->uuid('repeated_from_id')->nullable();
+            $table->dateTime('created_at')->useCurrent();
+
+            $table->unique(['organization_id', 'id'], 'uq_prescriptions_org_id');
+            $table->unique(['organization_id', 'folio'], 'uq_prescriptions_org_folio');
+            $table->index(['organization_id', 'patient_id', 'issued_on'], 'idx_rx_patient_issued');
+            $table->foreign(['organization_id', 'patient_id'], 'fk_rx_patient')
+                ->references(['organization_id', 'id'])->on('patients');
+            $table->foreign(['organization_id', 'doctor_member_id'], 'fk_rx_doctor')
+                ->references(['organization_id', 'id'])->on('organization_members');
+            $table->foreign(['organization_id', 'repeated_from_id'], 'fk_rx_repeated')
+                ->references(['organization_id', 'id'])->on('prescriptions');
+        });
+
+        Schema::create('prescription_items', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('prescription_id');
+            $table->smallInteger('line_number');
+            $table->uuid('medication_id')->nullable();
+            $table->string('medication_name', 200);
+            $table->string('strength', 80)->nullable();
+            $table->string('presentation', 120)->nullable();
+            $table->string('dose', 120);
+            $table->string('route', 60)->nullable();
+            $table->string('frequency', 120);
+            $table->string('duration', 120)->nullable();
+            $table->text('instructions')->nullable();
+
+            $table->unique(['prescription_id', 'line_number'], 'uq_rxi_rx_line');
+            $table->foreign(['organization_id', 'prescription_id'], 'fk_rxi_rx')
+                ->references(['organization_id', 'id'])->on('prescriptions');
+            $table->foreign(['organization_id', 'medication_id'], 'fk_rxi_med')
+                ->references(['organization_id', 'id'])->on('medications');
+        });
+
+        // outbox_event_id: la FK a outbox_events se agrega en la migración de notificaciones.
+        Schema::create('prescription_deliveries', function (Blueprint $table) {
+            $table->uuid('id')->primary()->default(DB::raw('(UUID())'));
+            $table->uuid('organization_id');
+            $table->uuid('prescription_id');
+            $table->string('channel', 20);
+            $table->dateTime('sent_at')->nullable();
+            $table->uuid('actor_user_id')->nullable();
+            $table->uuid('outbox_event_id')->nullable();
+
+            $table->foreign(['organization_id', 'prescription_id'], 'fk_rxd_rx')
+                ->references(['organization_id', 'id'])->on('prescriptions');
+            $table->foreign('actor_user_id', 'fk_rxd_user')->references('id')->on('users');
+        });
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TABLE IF EXISTS prescription_deliveries, prescription_items, prescriptions, medications, consent_acceptances, clinical_files, tooth_findings, clinical_note_addenda, clinical_notes, patient_treatments, clinical_encounters, medical_records CASCADE');
+        Schema::disableForeignKeyConstraints();
+        foreach ([
+            'prescription_deliveries', 'prescription_items', 'prescriptions', 'medications',
+            'consent_acceptances', 'clinical_files', 'tooth_findings', 'clinical_note_addenda',
+            'clinical_notes', 'patient_treatments', 'clinical_encounters', 'medical_records',
+        ] as $t) {
+            Schema::dropIfExists($t);
+        }
+        Schema::enableForeignKeyConstraints();
     }
 };
