@@ -1,3 +1,4 @@
+{{-- Input de texto (compatibilidad Breeze). Marca .has-error si hay error para su `name`. --}}
 @props(['disabled' => false])
-
-<input {{ $disabled ? 'disabled' : '' }} {!! $attributes->merge(['class' => 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm']) !!}>
+@php $k = $attributes->get('name'); @endphp
+<input @disabled($disabled) {{ $attributes->merge(['class' => 'input'.($k && $errors->has($k) ? ' has-error' : '')]) }}>

@@ -1,17 +1,7 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
-            </div>
-        </div>
-    </div>
+{{-- PLACEHOLDER: lo reemplaza el módulo Dashboard (Fase 2). Mantener el nombre de ruta `dashboard`. --}}
+<x-app-layout title="Dashboard">
+    <x-ui.page-header title="Dashboard" subtitle="Resumen de tu clínica" />
+    <x-ui.card>
+        <x-ui.empty-state icon="layout-dashboard" title="Panel en construcción" text="Aquí se mostrarán las citas del día, ingresos y alertas." />
+    </x-ui.card>
 </x-app-layout>

@@ -38,7 +38,8 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Da de baja la cuenta (baja logica: is_active = false). No se borra el
+     * registro porque esta referenciado por documentos clinicos y fiscales.
      */
     public function destroy(Request $request): RedirectResponse
     {
@@ -50,7 +51,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        $user->forceFill(['is_active' => false])->save();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

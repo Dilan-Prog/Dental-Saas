@@ -1,9 +1,7 @@
+{{-- Mensajes de error bajo un campo (compatibilidad Breeze). <x-input-error :messages="$errors->get('email')" /> --}}
 @props(['messages'])
-
 @if ($messages)
-    <ul {{ $attributes->merge(['class' => 'text-sm text-red-600 space-y-1']) }}>
-        @foreach ((array) $messages as $message)
-            <li>{{ $message }}</li>
-        @endforeach
-    </ul>
+    <div {{ $attributes->merge(['class' => 'field__error', 'role' => 'alert']) }} style="flex-direction:column;align-items:flex-start;gap:2px">
+        @foreach ((array) $messages as $message)<span>{{ $message }}</span>@endforeach
+    </div>
 @endif

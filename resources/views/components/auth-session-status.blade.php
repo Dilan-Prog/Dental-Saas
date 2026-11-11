@@ -1,7 +1,5 @@
+{{-- Mensaje de estado en pantallas de autenticación (p. ej. "Te enviamos el enlace"). <x-auth-session-status :status="session('status')" /> --}}
 @props(['status'])
-
 @if ($status)
-    <div {{ $attributes->merge(['class' => 'font-medium text-sm text-green-600']) }}>
-        {{ $status }}
-    </div>
+    <x-ui.alert variant="success" {{ $attributes->merge(['class' => 'mb-4']) }}>{{ $status }}</x-ui.alert>
 @endif

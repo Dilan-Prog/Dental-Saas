@@ -72,6 +72,8 @@ return new class extends Migration
         // Índice único PARCIAL: una sola sucursal principal activa por organización.
         DB::statement("ALTER TABLE branches ADD COLUMN main_org_key CHAR(36) GENERATED ALWAYS AS (IF(is_main = 1 AND status = 'active', organization_id, NULL)) VIRTUAL, ADD UNIQUE KEY uq_one_main_branch (main_org_key)");
 
+        DB::unprepared('DROP PROCEDURE IF EXISTS next_folio');
+
         // Siguiente folio atómico: PAC-0001, RX-0001, ...
         DB::unprepared(<<<'SQL'
 CREATE PROCEDURE next_folio(IN p_org CHAR(36), IN p_type VARCHAR(20), IN p_series VARCHAR(10), OUT p_folio VARCHAR(40))

@@ -1,7 +1,1 @@
-import './bootstrap';
-
-import Alpine from 'alpinejs';
-
-window.Alpine = Alpine;
-
-Alpine.start();
+// JS del sistema: public/js/app.js (vanilla, sin build).

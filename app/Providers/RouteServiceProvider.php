@@ -35,6 +35,15 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
+
+            // Módulos del sistema: cada archivo routes/modules/*.php se carga
+            // con sesión, autenticación y membresía activa en la clínica.
+            Route::middleware(['web', 'auth', 'active.member'])
+                ->group(function () {
+                    foreach (glob(base_path('routes/modules/*.php')) as $file) {
+                        require $file;
+                    }
+                });
         });
     }
 }

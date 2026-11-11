@@ -27,9 +27,25 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string', 'email', 'max:254'],
             'password' => ['required', 'string'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'El correo es obligatorio.',
+            'email.email' => 'Escribe un correo valido.',
+            'password.required' => 'La contrasena es obligatoria.',
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('email'))) {
+            $this->merge(['email' => Str::lower(trim($this->input('email')))]);
+        }
     }
 
     /**
@@ -41,11 +57,31 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        // Solo usuarios activos (is_active = true) y con contrasena definida
+        // (un usuario invitado sin contrasena no debe provocar un error 500).
+        $credentials = $this->only('email', 'password') + ['is_active' => true];
+
+        $hasPassword = \App\Models\User::query()
+            ->where('email', $this->input('email'))
+            ->whereNotNull('password')
+            ->where('password', '!=', '')
+            ->exists();
+
+        if (! $hasPassword || ! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        // ...y con membresia activa en el consultorio.
+        if (! Auth::user()->hasActiveMembership()) {
+            Auth::guard('web')->logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Tu cuenta no tiene acceso activo al consultorio.',
             ]);
         }
 
