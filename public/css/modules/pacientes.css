@@ -1,0 +1,39 @@
+/* Módulo Pacientes — complementa public/css/app.css (usa solo sus variables). */
+
+/* Listado ------------------------------------------------------------ */
+.pac-filters { justify-content: flex-start; }
+.pac-filters .select { width: auto; min-width: 170px; }
+.pac-filters__search { flex: 1 1 260px; max-width: 360px; }
+.pac-filters__search .input { width: 100%; }
+
+.table tr.is-muted td { opacity: .65; }
+.pac-doctor { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.pac-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.pac-owes { color: var(--danger-text, #dc2626); font-weight: 600; }
+
+/* Ficha ---------------------------------------------------------------- */
+.pac-head { align-items: flex-start; }
+.pac-head .page-header__actions { flex-wrap: wrap; justify-content: flex-end; }
+.pac-grid { align-items: start; }
+.pac-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pac-item { align-items: flex-start; }
+.pac-item .row { gap: 4px; }
+
+/* Formulario del paciente -------------------------------------------- */
+.guardian-box { padding: 14px; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--surface-hover); }
+.guardian-box[hidden] { display: none; }
+.form-grid .col-span-full { grid-column: 1 / -1; }
+
+/* Tablet / celular -------------------------------------------------- */
+@media (max-width: 1024px) {
+    .pac-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+    .pac-filters .select, .pac-filters__search { width: 100%; max-width: none; flex: 1 1 100%; }
+    .pac-head { flex-direction: column; gap: var(--sp-3); }
+    .pac-head .page-header__actions { justify-content: flex-start; }
+    .pac-kpis { grid-template-columns: minmax(0, 1fr); }
+    .dl { grid-template-columns: 1fr; gap: 2px 0; }
+    .dl dd { margin-bottom: 8px; }
+    .form-grid { grid-template-columns: minmax(0, 1fr); }
+}

@@ -89,4 +89,35 @@ class FinancialMovement extends BaseModel
         return $this->hasOne(FinancialMovement::class, 'reversed_of_id');
     }
 
+    /**
+     * Movimientos "efectivos" para reportes: excluye los revertidos y sus
+     * reversiones (el par se anula, el efecto neto es cero).
+     */
+    public function scopeEffective(Builder $query): Builder
+    {
+        return $query->whereNull('financial_movements.reversed_of_id')
+            ->whereNotExists(function ($sub) {
+                $sub->select(DB::raw(1))->from('financial_movements as rev')
+                    ->whereColumn('rev.reversed_of_id', 'financial_movements.id');
+            });
+    }
+
+    /** Movimiento capturado a mano (no viene de un pago ni es una reversión). */
+    public function isManual(): bool
+    {
+        return $this->payment_id === null && $this->reversed_of_id === null;
+    }
+
+    public function isReversal(): bool
+    {
+        return $this->reversed_of_id !== null;
+    }
+
+    public function isReversed(): bool
+    {
+        return $this->relationLoaded('reversal')
+            ? $this->reversal !== null
+            : $this->reversal()->exists();
+    }
+
 }

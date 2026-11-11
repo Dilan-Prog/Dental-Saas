@@ -1,0 +1,95 @@
+/* Modulo Finanzas — se apoya en los tokens de /css/app.css */
+:root {
+    --fin-c1: #2563eb;
+    --fin-c2: #0ea5e9;
+    --fin-c3: #8b5cf6;
+    --fin-c4: #f59e0b;
+    --fin-c5: #94a3b8;
+    --fin-c6: #10b981;
+    --fin-c7: #ec4899;
+    --fin-c8: #14b8a6;
+    --fin-income: #2563eb;
+    --fin-expense: #cbd5e1;
+}
+[data-theme="dark"] {
+    --fin-expense: #475569;
+}
+
+/* Espaciado entre bloques de la pagina */
+.fin-kpis, .fin-charts, .fin-registers { margin-bottom: 20px; }
+.fin-filters { padding: 16px 20px; margin-bottom: 20px; }
+.fin-transactions, .fin-register { margin-bottom: 0; }
+.page-header + .tabs, [data-tabs] { margin-bottom: 0; }
+
+/* Filtros */
+.fin-filters__row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; }
+.fin-filters__row .field { min-width: 130px; flex: 1 1 140px; max-width: 220px; margin: 0; }
+.fin-filters__row .fin-filters__date { flex: 0 1 150px; }
+.fin-filters__actions { display: flex; gap: 8px; align-items: center; }
+.segmented--block { display: flex; width: 100%; }
+.segmented--block button { flex: 1; padding: 9px 14px; }
+
+/* Barra apilada de gastos por categoria */
+.fin-stack { display: flex; height: 22px; border-radius: 4px; overflow: hidden; background: var(--surface-hover); margin-bottom: 20px; }
+.fin-stack span { display: block; min-width: 2px; }
+.fin-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.fin-legend li { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.fin-legend__dot { width: 12px; height: 12px; border-radius: 3px; flex: none; display: inline-block; }
+.fin-legend__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fin-legend__pct { width: 48px; text-align: right; font-weight: 600; }
+.fin-legend__amount { font-size: 12.5px; }
+
+/* Grafica ingresos vs egresos */
+.fin-chart { display: flex; align-items: flex-end; justify-content: space-around; gap: 10px; height: 220px; padding: 8px 8px 0; border-bottom: 1px solid var(--border); }
+.fin-chart__group { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; max-width: 150px; }
+.fin-chart__bars { display: flex; align-items: flex-end; gap: 4px; height: calc(100% - 22px); width: 100%; justify-content: center; }
+.fin-chart__bar { width: 38%; max-width: 40px; border-radius: 4px 4px 0 0; transition: opacity .15s; }
+.fin-chart__bar:hover { opacity: .8; }
+.fin-chart__bar--income { background: var(--fin-income); }
+.fin-chart__bar--expense { background: var(--fin-expense); }
+.fin-chart__label { height: 22px; line-height: 22px; font-size: 12px; color: var(--text-muted); }
+.fin-chart__legend { display: flex; gap: 18px; margin-top: 12px; justify-content: center; }
+.fin-chart__legend i { vertical-align: -1px; margin-right: 4px; }
+
+/* Tabla de transacciones */
+.fin-concept.is-struck { text-decoration: line-through; color: var(--text-muted); }
+.fin-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; align-items: center; }
+.fin-row--muted td { opacity: .72; }
+.fin-amount { font-weight: 600; white-space: nowrap; }
+.fin-amount--in { color: var(--success-text); }
+.fin-amount--out { color: var(--danger-text); }
+.table--clickable tr[data-href] { cursor: pointer; }
+
+/* Modales */
+.fin-session-field { display: none; }
+.fin-session-field.is-visible { display: flex; }
+.fin-cash-note { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: var(--radius); background: var(--info-soft); color: var(--info-text); }
+.fin-close-tiles { gap: 12px; }
+.fin-tile { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface-2); }
+.fin-tile__label { font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+.fin-tile__value { font-size: 18px; font-weight: 700; }
+.fin-tile__value.is-ok { color: var(--success-text); }
+.fin-tile__value.is-bad { color: var(--danger-text); }
+.fin-reverse-summary { padding: 10px 12px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--border); }
+
+/* Cajas */
+.fin-register.is-inactive { opacity: .7; }
+.fin-dl { margin: 16px 0 0; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; }
+.fin-dl > div { display: flex; justify-content: space-between; gap: 12px; }
+.fin-dl dt { color: var(--text-muted); }
+.fin-dl dd { margin: 0; }
+
+/* Responsivo */
+@media (max-width: 1024px) {
+    .fin-charts.grid-2 { grid-template-columns: minmax(0, 1fr); }
+    .fin-registers.grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+    .fin-registers.grid-3, .fin-close-tiles.grid-3 { grid-template-columns: minmax(0, 1fr); }
+    .fin-filters__row .field, .fin-filters__row .fin-filters__date { flex: 1 1 100%; max-width: none; }
+    .fin-filters__row .segmented { width: 100%; overflow-x: auto; }
+    .fin-chart { height: 180px; gap: 4px; }
+    .fin-chart__bar { width: 42%; }
+    .modal .form-grid { grid-template-columns: minmax(0, 1fr); }
+    .modal .form-grid .col-span-2 { grid-column: auto; }
+}

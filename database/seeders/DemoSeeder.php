@@ -13,6 +13,7 @@ class DemoSeeder extends Seeder
 {
     public const ORDER = [
         'Configuracion',
+        'Usuarios',
         'Tratamientos',
         'Pacientes',
         'Agenda',

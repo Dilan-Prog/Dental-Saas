@@ -23,6 +23,9 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        // Organization::currentId() se memoriza; cada prueba siembra una organizacion nueva.
+        \App\Models\Organization::flushCurrent();
+
         if ($this->seedBase) {
             $this->seedBase();
         }

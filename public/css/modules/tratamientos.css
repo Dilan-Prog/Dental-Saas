@@ -1,0 +1,57 @@
+/* Módulo Tratamientos (Configuración > Tratamientos). Usa los tokens de app.css. */
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: var(--sp-6);
+    align-items: start;
+}
+
+.settings-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.settings-menu__item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: 9px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none !important;
+}
+.settings-menu__item:hover { background: var(--surface-hover); }
+.settings-menu__item.is-active {
+    background: var(--primary-soft);
+    border-color: var(--primary-soft-2);
+    color: var(--primary);
+}
+
+.settings-content { min-width: 0; }
+.settings-content .tabs { margin-bottom: var(--sp-4); }
+
+.treatments-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+}
+.treatments-filters .input-wrap { width: min(300px, 100%); }
+.treatments-filters .select { width: auto; flex: 0 1 190px; min-width: 150px; }
+
+tr.is-inactive td { opacity: .6; }
+tr.is-inactive td.actions { opacity: 1; }
+[data-treatment-row] { cursor: pointer; }
+
+@media (max-width: 900px) {
+    .settings-layout { grid-template-columns: minmax(0, 1fr); }
+    .settings-menu { flex-direction: row; flex-wrap: wrap; }
+    .settings-menu__item { flex: 0 0 auto; }
+}

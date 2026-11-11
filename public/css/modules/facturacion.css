@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Modulo Facturacion y cobranza (listado, detalle, formulario, pagos, impresion)
+   Usa los tokens de /css/app.css.
+   ========================================================================== */
+
+/* ---------- listado ---------- */
+.fact-filters { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: flex-end; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.fact-filters .field { margin: 0; min-width: 150px; }
+.fact-filters .field--grow { flex: 1 1 240px; }
+.fact-filters .field__label { font-size: 11.5px; }
+.fact-filters__actions { display: flex; gap: var(--sp-2); }
+.fact-folio { font-weight: 700; color: var(--text); text-decoration: none; }
+.fact-folio:hover { color: var(--primary); }
+.fact-sub { display: block; font-size: 11.5px; color: var(--text-subtle); margin-top: 2px; }
+.fact-link { font-weight: 600; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.fact-patient-chip { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; background: var(--primary-soft, var(--surface-hover)); border-radius: 999px; font-size: 12px; font-weight: 600; }
+.fact-patient-chip a { color: inherit; }
+
+/* ---------- detalle ---------- */
+.fact-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--sp-5); align-items: start; }
+.fact-doc { padding: 28px 30px; }
+.fact-doc h2 { font-size: 18px; margin: 0 0 4px; }
+.fact-doc__meta { font-size: 12.5px; color: var(--text-muted); line-height: 1.7; }
+.fact-doc__uuid { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; word-break: break-all; }
+.fact-doc__block { margin-top: 22px; }
+.fact-doc__label { font-size: 11.5px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+.fact-doc__party { font-size: 15px; font-weight: 600; }
+.fact-items { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13.5px; }
+.fact-items th { text-align: left; font-size: 11.5px; color: var(--text-subtle); font-weight: 600; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.fact-items td { padding: 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.fact-items .num { text-align: right; font-variant-numeric: tabular-nums; }
+.fact-totals { margin: 14px 0 0 auto; width: min(320px, 100%); font-size: 13.5px; }
+.fact-totals div { display: flex; justify-content: space-between; padding: 4px 0; font-variant-numeric: tabular-nums; }
+.fact-totals .is-total { font-weight: 700; font-size: 15px; border-top: 1px solid var(--border); margin-top: 6px; padding-top: 8px; }
+.fact-section { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--border); }
+.fact-section h3 { font-size: 15px; margin: 0 0 10px; }
+.fact-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.fact-table th { text-align: left; font-size: 11.5px; color: var(--text-subtle); font-weight: 600; padding: 6px 8px 6px 0; }
+.fact-table td { padding: 8px 8px 8px 0; border-top: 1px solid var(--border); vertical-align: middle; }
+.fact-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.fact-side__label { font-size: 12.5px; color: var(--text-muted); }
+.fact-side__value { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 14px; }
+.fact-side__value--due { color: var(--warning-text, #b45309); }
+.fact-side__value--ok { color: var(--success-text, #15803d); }
+.fact-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); justify-content: flex-end; }
+.fact-errors { margin: 0 0 var(--sp-4); }
+.fact-errors ul { margin: 6px 0 0 18px; padding: 0; }
+.fact-note { font-size: 12.5px; color: var(--text-muted); }
+.fact-reversed td { color: var(--text-subtle); text-decoration: line-through; }
+.fact-reversed td:last-child, .fact-reversed td .badge { text-decoration: none; }
+
+/* ---------- formulario ---------- */
+.fact-form { display: grid; gap: var(--sp-5); }
+.fact-form__cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--sp-4); }
+.fact-receiver-box { margin-top: var(--sp-3); padding: 12px 14px; background: var(--surface-hover); border-radius: var(--radius); font-size: 13px; line-height: 1.6; }
+.fact-receiver-box.is-warning { background: var(--warning-soft, #fef3c7); }
+.fact-lines { display: grid; gap: var(--sp-3); }
+.fact-line { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); position: relative; }
+.fact-line .field { margin: 0; }
+.fact-line .field__label { font-size: 11.5px; }
+.fact-line__desc { grid-column: span 6; }
+.fact-line__key { grid-column: span 3; }
+.fact-line__unit { grid-column: span 3; }
+.fact-line__qty, .fact-line__price, .fact-line__disc { grid-column: span 2; }
+.fact-line__obj { grid-column: span 3; }
+.fact-line__tax { grid-column: span 3; }
+.fact-line__total { grid-column: span 12; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-muted); }
+.fact-line__total strong { color: var(--text); font-variant-numeric: tabular-nums; }
+.fact-line__remove { position: absolute; top: 8px; right: 8px; }
+.fact-sum { margin-left: auto; width: min(340px, 100%); font-size: 14px; }
+.fact-sum div { display: flex; justify-content: space-between; padding: 4px 0; font-variant-numeric: tabular-nums; }
+.fact-sum .is-total { font-weight: 700; font-size: 16px; border-top: 1px solid var(--border); margin-top: 6px; padding-top: 8px; }
+.fact-form__footer { display: flex; justify-content: flex-end; gap: var(--sp-3); flex-wrap: wrap; }
+
+/* ---------- pagos ---------- */
+.fact-methods { display: flex; }
+.fact-methods .segmented { width: 100%; display: flex; }
+.fact-methods .segmented button { flex: 1; }
+.fact-pay-table input.input { max-width: 150px; text-align: right; margin-left: auto; }
+.fact-pay-total { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1024px) {
+    .fact-layout { grid-template-columns: 1fr; }
+    .fact-doc { padding: 20px; }
+}
+@media (max-width: 700px) {
+    .fact-line { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .fact-line__desc, .fact-line__total { grid-column: span 6; }
+    .fact-line__key, .fact-line__unit, .fact-line__obj, .fact-line__tax { grid-column: span 3; }
+    .fact-line__qty, .fact-line__price, .fact-line__disc { grid-column: span 2; }
+    .fact-filters .field { min-width: 100%; }
+    .fact-actions { justify-content: flex-start; }
+}
+
+/* ---------- impresion ---------- */
+.fact-print { max-width: 820px; margin: 0 auto; padding: 32px; background: #fff; color: #111; }
+.fact-print .toolbar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 20px; }
+.fact-print h1 { font-size: 22px; margin: 0 0 4px; }
+.fact-print .watermark { display: inline-block; padding: 2px 10px; border: 1px solid #b91c1c; color: #b91c1c; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+@media print {
+    body { background: #fff !important; }
+    .fact-print { padding: 0; max-width: none; }
+    .fact-print .toolbar { display: none !important; }
+}

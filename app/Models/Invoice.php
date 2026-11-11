@@ -147,6 +147,32 @@ class Invoice extends BaseModel
         return number_format(round((float) $this->total - (float) $this->appliedAmount(), 2), 2, '.', '');
     }
 
+    /** Filas de payment_complements donde ESTA factura (tipo P) es el complemento. */
+    public function complementRows(): HasMany
+    {
+        return $this->hasMany(PaymentComplement::class, 'complement_invoice_id');
+    }
+
+    /** Solo las facturas en borrador se pueden editar o eliminar. */
+    public function isEditable(): bool
+    {
+        return $this->fiscal_status === FiscalStatus::Borrador;
+    }
+
+    /** Admite cobros: emitida (pendiente de timbrar o timbrada), con saldo y no cancelada. */
+    public function acceptsPayments(): bool
+    {
+        return $this->cfdi_type === \App\Enums\CfdiType::Ingreso
+            && in_array($this->fiscal_status, [FiscalStatus::PendienteTimbrado, FiscalStatus::Timbrada], true)
+            && $this->collection_status !== CollectionStatus::Pagada;
+    }
+
+    /** Se puede cancelar mientras no este en borrador ni ya cancelada/en cancelacion. */
+    public function isCancelable(): bool
+    {
+        return in_array($this->fiscal_status, [FiscalStatus::PendienteTimbrado, FiscalStatus::Timbrada, FiscalStatus::Error], true);
+    }
+
     public function isStamped(): bool
     {
         return $this->fiscal_status?->isStamped() ?? false;

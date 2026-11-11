@@ -1,0 +1,155 @@
+/* =========================================================
+   Módulo Usuarios y Roles (prefijo usr-)
+   Usa los tokens de /css/app.css; no redefine componentes.
+   ========================================================= */
+
+:root {
+    --usr-violet-bg: #f3e8ff;
+    --usr-violet-text: #7e22ce;
+}
+:root[data-theme="dark"] {
+    --usr-violet-bg: rgba(168, 85, 247, .2);
+    --usr-violet-text: #d8b4fe;
+}
+
+/* Variante de badge usada por el rol "Sistema / Propietaria" (Figma: violet) */
+.badge--violet { background: var(--usr-violet-bg); color: var(--usr-violet-text); }
+
+/* ---- Estructura: submenú de Configuración + contenido ---- */
+.usr-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: var(--sp-6);
+    align-items: start;
+}
+.usr-main { min-width: 0; }
+
+.usr-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-2);
+    position: sticky;
+    top: var(--sp-4);
+}
+.usr-submenu__link {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-2);
+    text-decoration: none;
+}
+.usr-submenu__link:hover { background: var(--surface-hover); }
+.usr-submenu__link.is-active { background: var(--primary-soft); color: var(--primary); font-weight: 700; }
+
+.usr-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: var(--sp-2);
+}
+
+/* ---- Filtros del listado ---- */
+.usr-filters { justify-content: flex-start; }
+.usr-filters .input-wrap { flex: 1 1 240px; }
+.usr-filters select { min-width: 170px; }
+
+/* ---- Listas de casillas ---- */
+.usr-checklist { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
+.usr-doctor { border-top: 1px dashed var(--border); padding-top: var(--sp-4); }
+.usr-doctor [hidden] { display: none !important; }
+
+/* ---- Firma ---- */
+.usr-signature { display: flex; align-items: flex-start; gap: var(--sp-4); flex-wrap: wrap; }
+.usr-signature__img {
+    width: 200px;
+    max-height: 100px;
+    object-fit: contain;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+    padding: var(--sp-2);
+}
+.usr-signature__img[hidden] { display: none; }
+
+/* ---- Enlace de acceso (se muestra una vez) ---- */
+.usr-linkbox { display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap; }
+.usr-linkbox .input { flex: 1 1 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+
+/* ---- Roles: listado ---- */
+.usr-actions { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.usr-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    cursor: pointer;
+    text-decoration: none;
+}
+.usr-link:hover { text-decoration: underline; }
+.usr-link--danger { color: var(--danger-text); }
+.usr-locked { display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 13px; }
+.usr-footer-split { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: var(--sp-3); }
+
+/* ---- Roles: detalle ---- */
+.usr-roles-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+    gap: var(--sp-5);
+    align-items: start;
+    margin-top: var(--sp-5);
+}
+.tab-panel .card { margin-top: var(--sp-5); }
+.usr-roles-grid .card { margin-top: 0; }
+
+.usr-matrix th[scope="row"] { font-weight: 700; text-align: left; white-space: nowrap; }
+.usr-matrix__col { text-align: center; width: 1%; white-space: nowrap; }
+.usr-matrix__sub th[scope="row"] { font-weight: 500; padding-left: 32px; color: var(--text-2); }
+.usr-cell { justify-content: center; }
+.usr-special { margin-right: var(--sp-4); white-space: nowrap; }
+
+.usr-diff { display: inline-block; margin-right: var(--sp-3); }
+.usr-diff--add { color: var(--success-text); }
+.usr-diff--del { color: var(--danger-text); }
+
+.usr-assign { display: flex; align-items: center; gap: var(--sp-3); padding: 6px 0; }
+
+/* ---- Vista previa del menú ---- */
+.usr-preview { max-width: 520px; }
+.usr-preview__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: 14px;
+}
+.usr-preview__item.is-visible { background: var(--primary-soft); color: var(--primary); font-weight: 700; font-size: 13px; }
+
+/* ---- Responsivo ---- */
+@media (max-width: 1100px) {
+    .usr-roles-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+    .usr-layout { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+    .usr-submenu { flex-direction: row; overflow-x: auto; position: static; }
+    .usr-submenu__link { white-space: nowrap; }
+}
+@media (max-width: 600px) {
+    .usr-filters select, .usr-filters .input-wrap { flex: 1 1 100%; width: 100%; }
+    .usr-signature__img { width: 100%; }
+}

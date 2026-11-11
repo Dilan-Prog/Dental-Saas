@@ -1,0 +1,60 @@
+/* Inventario — estilos propios del módulo (usa los tokens de app.css, claro y oscuro). */
+
+/* Filas del resumen según el estado del stock (Figma 808:3975) */
+.inv-table .inv-row--low { background: var(--warning-soft); }
+.inv-table .inv-row--out { background: var(--danger-soft); }
+.inv-table .inv-row--low:hover,
+.inv-table .inv-row--out:hover { filter: brightness(.98); }
+.inv-row--inactive { opacity: .6; }
+
+.inv-name { color: var(--text); text-decoration: none; }
+.inv-name:hover { color: var(--primary); text-decoration: underline; }
+
+/* Categoría como píldora gris azulada */
+.inv-cat { background: var(--slate-200); color: var(--text); font-weight: 600; }
+[data-theme='dark'] .inv-cat { background: var(--surface-hover); color: var(--text-2); }
+
+/* Existencia con unidad y campana de alerta */
+.inv-stock { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.inv-stock--low { color: var(--warning-text); }
+.inv-stock--out { color: var(--danger-text); }
+.inv-stock .icon { flex: none; }
+
+/* Movimientos: cantidades con signo */
+.inv-pos { color: var(--success-text); }
+.inv-neg { color: var(--danger-text); }
+
+/* Barra de filtros */
+.inv-toolbar { align-items: center; }
+.inv-toolbar .inv-filters { align-items: center; gap: var(--sp-2); justify-content: flex-end; flex: 1; }
+.inv-toolbar .select,
+.inv-toolbar .input.inv-date { width: auto; min-width: 150px; max-width: 220px; }
+.inv-toolbar .input-wrap { flex: 1 1 240px; }
+
+.inv-kpis .kpi { min-width: 0; }
+
+/* Tablas con muchas columnas: el contenedor ya hace scroll horizontal; mantenemos columnas legibles */
+.inv-table th,
+.inv-table td { vertical-align: middle; }
+.inv-table td .text-xs { margin-top: 2px; }
+
+/* Responsivo: tablet */
+@media (max-width: 1023px) {
+    .inv-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .inv-toolbar .inv-filters { justify-content: flex-start; }
+}
+
+/* Responsivo: celular */
+@media (max-width: 767px) {
+    .inv-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); }
+    .inv-kpis .kpi { padding: 14px; }
+    .inv-kpis .kpi__value { font-size: 20px; }
+    .inv-toolbar .select,
+    .inv-toolbar .input.inv-date { flex: 1 1 140px; max-width: none; }
+    .inv-table { min-width: 720px; }
+    .page-header__actions { flex-wrap: wrap; }
+}
+
+/* Fila de stock inicial / mínimo / costo del modal "Nuevo insumo" (3 columnas como en Figma) */
+.inv-stock-fields { gap: var(--sp-4); }
+@media (max-width: 767px) { .inv-stock-fields { grid-template-columns: 1fr; } }

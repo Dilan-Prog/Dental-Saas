@@ -1,0 +1,81 @@
+/* =====================================================================
+   Módulo Configuración — submenú lateral + formularios (según Figma).
+   Usa los tokens de public/css/app.css (claro/oscuro).
+   ===================================================================== */
+
+.cfg { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--sp-6); align-items: start; }
+.cfg-main { min-width: 0; }
+
+/* ---- Submenú ---- */
+.cfg-nav { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-4); position: sticky; top: calc(var(--content-pad, 24px) + 56px); }
+.cfg-nav__head { padding: 4px 8px 14px; }
+.cfg-nav__title { font-size: 15px; font-weight: 700; color: var(--text); }
+.cfg-nav__subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.cfg-nav__list { display: flex; flex-direction: column; gap: 4px; }
+.cfg-nav__item { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 36px; padding: 0 12px; border-radius: var(--radius); font-size: 13.5px; font-weight: 500; color: var(--text-2); text-decoration: none; }
+.cfg-nav__item:hover { background: var(--surface-hover); color: var(--text); text-decoration: none; }
+.cfg-nav__item.is-active { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.cfg-nav__item.is-disabled { color: var(--text-subtle); cursor: not-allowed; }
+.cfg-nav__item.is-disabled:hover { background: none; color: var(--text-subtle); }
+
+.cfg-tag { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; }
+.cfg-tag--owner { background: rgba(124, 58, 237, .12); color: #6d28d9; }
+:root[data-theme="dark"] .cfg-tag--owner { background: rgba(167, 139, 250, .18); color: #c4b5fd; }
+
+/* ---- Formularios ---- */
+.cfg-form { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: var(--sp-6); align-items: start; }
+.cfg-logo-col { display: flex; flex-direction: column; gap: 8px; }
+.cfg-logo, .cfg-signature { display: flex; align-items: center; justify-content: center; border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); background: var(--bg); cursor: pointer; overflow: hidden; transition: border-color .15s, background .15s; }
+.cfg-logo { width: 220px; height: 120px; }
+.cfg-signature { width: min(100%, 420px); height: 110px; }
+.cfg-logo:hover, .cfg-signature:hover { border-color: var(--primary); background: var(--primary-soft); }
+.cfg-logo.has-error, .cfg-signature.has-error { border-color: var(--danger); }
+.cfg-logo img, .cfg-signature img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 8px; }
+.cfg-logo img[hidden], .cfg-signature img[hidden] { display: none; }
+.cfg-logo__hint { font-size: 12.5px; color: var(--text-muted); text-align: center; padding: 0 16px; }
+
+/* ---- Facturación ---- */
+.cfg-secrets { margin-top: var(--sp-6); padding-top: var(--sp-5); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: var(--sp-4); }
+.cfg-secrets__title { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text); }
+.cfg-secrets code { background: var(--surface-hover); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+.card__footer .text-muted { margin-right: auto; align-self: center; }
+
+/* ---- Notificaciones ---- */
+.cfg-notifs { display: flex; flex-direction: column; }
+.cfg-notif { padding: 18px 0; border-bottom: 1px solid var(--border); }
+.cfg-notif:first-child { padding-top: 0; }
+.cfg-notif:last-child { border-bottom: 0; padding-bottom: 0; }
+.cfg-notif__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.cfg-notif__label { font-size: 14px; font-weight: 600; color: var(--text); }
+.cfg-notif__opts { display: flex; gap: var(--sp-4); flex-wrap: wrap; margin-top: var(--sp-3); transition: opacity .15s; }
+.cfg-notif__opt { width: 240px; max-width: 100%; }
+.cfg-notif.is-off .cfg-notif__opts { opacity: .5; }
+
+/* ---- Sucursales ---- */
+.table tr.is-muted td { color: var(--text-muted); }
+.ml-2 { margin-left: var(--sp-2); }
+
+/* ---- Perfil ---- */
+.cfg-profile-head { display: flex; align-items: center; gap: var(--sp-5); }
+.cfg-profile-name { font-size: 17px; font-weight: 700; color: var(--text); }
+.cfg-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+.cfg-avatar[hidden] { display: none; }
+
+/* ---- Responsivo ---- */
+@media (max-width: 1279px) {
+    .cfg { grid-template-columns: 220px minmax(0, 1fr); gap: var(--sp-4); }
+}
+@media (max-width: 1023px) {
+    .cfg { grid-template-columns: minmax(0, 1fr); }
+    .cfg-nav { position: static; padding: 10px; }
+    .cfg-nav__head { display: none; }
+    .cfg-nav__list { flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 2px; }
+    .cfg-nav__item { white-space: nowrap; flex: 0 0 auto; }
+    .cfg-form { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 599px) {
+    .cfg-profile-head { flex-direction: column; align-items: flex-start; }
+    .cfg-logo { width: 100%; }
+    .cfg-notif__head { align-items: flex-start; }
+    .cfg-notif__opt { width: 100%; }
+}
