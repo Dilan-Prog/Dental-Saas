@@ -71,7 +71,7 @@
             <tr data-href="{{ route('pacientes.show', $p) }}" class="{{ $p->trashed() ? 'is-muted' : '' }}">
                 <td>
                     <div class="row">
-                        <x-ui.avatar :name="$p->full_name" />
+                        <x-ui.avatar :name="$p->full_name" tone="auto" />
                         <div>
                             <div class="fw-600">{{ $p->full_name }}</div>
                             <div class="text-xs text-subtle mono">{{ $p->folio }}@if ($p->age !== null) · {{ $p->age }} {{ $p->age === 1 ? 'año' : 'años' }}@endif</div>
@@ -132,16 +132,13 @@
         @endforelse
     </x-ui.table>
 
-    <div class="table-foot">
-        <span>
-            @if ($patients->total() > 0)
-                Mostrando {{ $patients->firstItem() }}-{{ $patients->lastItem() }} de {{ $patients->total() }} {{ $patients->total() === 1 ? 'paciente' : 'pacientes' }}
-            @else
-                0 pacientes
-            @endif
-        </span>
-    </div>
-    @if ($patients->hasPages()){{ $patients->links() }}@endif
+    @if ($patients->hasPages())
+        {{ $patients->links('pagination::tailwind', ['noun' => $patients->total() === 1 ? 'paciente' : 'pacientes']) }}
+    @else
+        <div class="table-foot">
+            <span>{{ $patients->total() > 0 ? 'Mostrando '.$patients->firstItem().'-'.$patients->lastItem().' de '.$patients->total().' '.($patients->total() === 1 ? 'paciente' : 'pacientes') : '0 pacientes' }}</span>
+        </div>
+    @endif
 </x-ui.card>
 
 @if ($canCreate)

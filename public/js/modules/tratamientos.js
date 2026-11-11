@@ -59,7 +59,7 @@
     function openTreatment(data) {
         var edit = !!data;
         var ctx = prepare('treatment-modal', edit ? 'edit' : 'new', edit ? data.id : null,
-            edit ? 'Tratamiento a editar' : 'Nuevo tratamiento',
+            edit ? 'Tratamiento a Editar' : 'Tratamiento Nuevo',
             edit ? {
                 name: data.name, category_name: data.category, duration_minutes: data.duration,
                 price: data.price, sat_product_key: data.sat, sat_unit_key: data.unit || 'E48', tax_profile_id: data.tax || ''

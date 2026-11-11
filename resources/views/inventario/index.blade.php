@@ -87,8 +87,8 @@
                         <input class="input inv-date" type="date" name="from" value="{{ $f['from'] }}" aria-label="Desde" title="Desde">
                         <input class="input inv-date" type="date" name="to" value="{{ $f['to'] }}" aria-label="Hasta" title="Hasta">
                     @else
-                        <x-ui.select name="category" :options="$categories->mapWithKeys(fn ($c) => [$c => $c])->all()" :selected="$f['category']" placeholder="Todas las categorías" aria-label="Categoría" />
-                        <x-ui.select name="supplier" :options="$suppliers->mapWithKeys(fn ($s) => [$s->id => $s->name])->all()" :selected="$f['supplier']" placeholder="Todos los proveedores" aria-label="Proveedor" />
+                        <x-ui.select name="category" :options="$categories->mapWithKeys(fn ($c) => [$c => $c])->all()" :selected="$f['category']" placeholder="Categorías" aria-label="Categoría" />
+                        <x-ui.select name="supplier" :options="$suppliers->mapWithKeys(fn ($s) => [$s->id => $s->name])->all()" :selected="$f['supplier']" placeholder="Proveedores" aria-label="Proveedor" />
                         <x-ui.select name="filter" :options="['bajo' => 'Bajo mínimo', 'agotado' => 'Agotados', 'caducan' => 'Por caducar']" :selected="$f['filter']" placeholder="Todo el stock" aria-label="Estado de stock" />
                         <x-ui.select name="status" :options="['active' => 'Activos', 'inactive' => 'Inactivos', 'all' => 'Todos']" :selected="$f['status']" aria-label="Estado" />
                     @endif

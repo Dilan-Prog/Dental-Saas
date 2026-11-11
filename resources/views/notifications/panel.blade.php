@@ -47,7 +47,7 @@
 
     <div class="notif-panel__foot"><a href="{{ route('notifications.index') }}">Ver todas</a></div>
 </div>
-<link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}?v={{ @filemtime(public_path('css/modules/dashboard.css')) }}">
+<link rel="stylesheet" href="{{ asset('css/modules/notifications.css') }}?v={{ @filemtime(public_path('css/modules/notifications.css')) }}">
 @push('scripts')
     <script src="{{ asset('js/modules/dashboard.js') }}?v={{ @filemtime(public_path('js/modules/dashboard.js')) }}" defer></script>
 @endpush

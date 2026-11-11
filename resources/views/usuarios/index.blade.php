@@ -3,6 +3,7 @@
 @section('title', 'Usuarios')
 
 @push('styles')
+    <link rel="stylesheet" href="{{ asset('css/modules/configuracion.css') }}?v={{ @filemtime(public_path('css/modules/configuracion.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/modules/usuarios.css') }}?v={{ @filemtime(public_path('css/modules/usuarios.css')) }}">
 @endpush
 
@@ -14,7 +15,7 @@
 @endphp
 
 <div class="usr-layout">
-    <aside>@include('usuarios.partials.submenu')</aside>
+    @include('configuracion.partials.nav', ['section' => 'usuarios'])
 
     <div class="usr-main">
         <x-ui.page-header title="Usuarios y roles" subtitle="Personas con acceso a la clínica, su rol y sus sucursales.">
@@ -49,7 +50,6 @@
                         <th>Correo</th>
                         <th>Rol</th>
                         <th>Sucursales</th>
-                        <th>Último acceso</th>
                         <th>Estado</th>
                         <th class="actions"></th>
                     </tr>
@@ -73,7 +73,10 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="text-muted">{{ $m->user->email }}</td>
+                        <td>
+                            <div class="text-muted">{{ $m->user->email }}</div>
+                            <div class="text-muted text-xs">Último acceso: {{ $m->user->last_login_at ? $m->user->last_login_at->timezone(config('app.timezone'))->diffForHumans() : 'nunca' }}</div>
+                        </td>
                         <td>
                             @if ($role)
                                 <x-ui.badge :variant="$roleVariant">{{ $role->name }}</x-ui.badge>
@@ -83,7 +86,6 @@
                             @endif
                         </td>
                         <td class="text-muted">{{ $m->branches->pluck('name')->join(', ') ?: '—' }}</td>
-                        <td class="text-muted">{{ $m->user->last_login_at ? $m->user->last_login_at->timezone(config('app.timezone'))->diffForHumans() : 'Nunca' }}</td>
                         <td>
                             @if ($status === 'activo')
                                 <x-ui.badge variant="success" dot>Activo</x-ui.badge>
@@ -99,7 +101,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7">
+                        <td colspan="6">
                             @if ($hasFilters)
                                 <x-ui.empty-state icon="search" title="Sin resultados" text="Ningún usuario coincide con los filtros.">
                                     <x-ui.button variant="secondary" :href="route('usuarios.index')">Quitar filtros</x-ui.button>

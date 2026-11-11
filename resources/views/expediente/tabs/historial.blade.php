@@ -4,27 +4,27 @@
 @endphp
 <div class="grid grid-sidebar">
     <x-ui.card title="Historial de consultas">
-        <div class="timeline">
+        <div class="exp-timeline">
             @foreach ($upcoming as $a)
-                <div class="timeline__item">
-                    <div class="timeline__title">{{ Fmt::date($a->starts_at) }} · {{ Fmt::doctor($a->doctor) }} <span class="text-muted">(programada)</span></div>
-                    <div class="timeline__text">{{ $a->treatment?->name ?? 'Consulta' }}{{ $a->notes ? ' — '.$a->notes : '' }}</div>
+                <div class="exp-timeline__item">
+                    <div class="exp-timeline__title">{{ Fmt::date($a->starts_at) }} · {{ Fmt::doctor($a->doctor) }} <span class="text-muted">(programada)</span></div>
+                    <div class="exp-timeline__text">{{ $a->treatment?->name ?? 'Consulta' }}{{ $a->notes ? ' — '.$a->notes : '' }}</div>
                 </div>
             @endforeach
 
             @forelse ($encounters as $e)
-                <div class="timeline__item">
-                    <div class="timeline__title">
+                <div class="exp-timeline__item">
+                    <div class="exp-timeline__title">
                         {{ Fmt::date($e->occurred_at) }} · {{ Fmt::doctor($e->doctor) }}
                         <span class="text-muted text-sm">· {{ $e->branch?->name }}</span>
                     </div>
                     @forelse ($e->notes as $n)
-                        <div class="timeline__text">
+                        <div class="exp-timeline__text">
                             <a href="{{ route('expediente.notas.show', [$patient->id, $n->id]) }}">{{ NoteService::summary($n, 260) ?: 'Nota sin contenido' }}</a>
                             @if (! $n->isSigned())<x-ui.badge variant="warning">Borrador</x-ui.badge>@endif
                         </div>
                     @empty
-                        <div class="timeline__text text-muted">Consulta sin notas registradas.</div>
+                        <div class="exp-timeline__text text-muted">Consulta sin notas registradas.</div>
                     @endforelse
                 </div>
             @empty

@@ -27,15 +27,14 @@
 @endphp
 <x-app-layout title="Tratamientos" :breadcrumbs="['Configuración' => Route::has('configuracion.index') ? route('configuracion.index') : null, 'Tratamientos']">
     @push('styles')
+        <link rel="stylesheet" href="{{ asset('css/modules/configuracion.css') }}?v={{ @filemtime(public_path('css/modules/configuracion.css')) }}">
         <link rel="stylesheet" href="{{ asset('css/modules/tratamientos.css') }}">
     @endpush
 
-    <x-ui.page-header title="Configuración" subtitle="Administra tu clínica y preferencias" />
+    <div class="cfg">
+        @include('configuracion.partials.nav', ['section' => 'tratamientos'])
 
-    <div class="settings-layout">
-        @include('tratamientos._menu')
-
-        <div class="settings-content">
+        <div class="settings-content cfg-main">
             <x-ui.tabs :items="$tabs" :active="$tab" />
 
             {{-- ============================ TRATAMIENTOS ============================ --}}
@@ -175,7 +174,7 @@
         <datalist id="category-list">@foreach ($categories as $c)<option value="{{ $c->name }}">@endforeach</datalist>
         <datalist id="sat-keys">@foreach (config('sat.claves_producto_sugeridas', []) as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</datalist>
 
-        <x-ui.modal id="treatment-modal" :title="$editId ? 'Tratamiento a editar' : 'Nuevo tratamiento'" :subtitle="'Tratamientos · '.$clinicName" open-on-error
+        <x-ui.modal id="treatment-modal" :title="$editId ? 'Tratamiento a Editar' : 'Tratamiento Nuevo'" :subtitle="'Tratamientos · '.$clinicName" open-on-error
             :action="$editId ? route('tratamientos.update', $editId) : route('tratamientos.store')" :method="$editId ? 'PUT' : 'POST'"
             data-store-url="{{ route('tratamientos.store') }}" data-update-url="{{ route('tratamientos.update', '__ID__') }}" data-destroy-url="{{ route('tratamientos.destroy', '__ID__') }}">
             <input type="hidden" name="_edit_id" value="{{ $editId }}" data-edit-id>
@@ -184,11 +183,11 @@
                 <x-ui.field name="category_name" label="Nombre de la categoría" placeholder="Escribe la categoría" maxlength="100" list="category-list" autocomplete="off"
                             hint="Si no existe, se crea automáticamente." />
                 <div class="form-grid">
-                    <x-ui.field name="duration_minutes" label="Duración del tratamiento (min)" type="number" required min="15" max="480" step="5" placeholder="Ej. 30" />
-                    <x-ui.field name="price" label="Precio (MXN, sin IVA)" type="number" required min="0" step="any" placeholder="Precio del tratamiento" />
+                    <x-ui.field name="duration_minutes" label="Duración del tratamiento" type="number" required min="15" max="480" step="5" placeholder="Ej. 30 min" />
+                    <x-ui.field name="price" label="Precio" type="number" required min="0" step="any" placeholder="Escribe el precio de tu tratamiento" />
                 </div>
                 <div class="form-grid">
-                    <x-ui.field name="sat_product_key" label="Clave SAT (producto/servicio)" required mask="digits" maxlength="8" placeholder="85121800" list="sat-keys" autocomplete="off" />
+                    <x-ui.field name="sat_product_key" label="Clave del SAT" required mask="digits" maxlength="8" placeholder="Escribe la clave del SAT" list="sat-keys" autocomplete="off" />
                     <x-ui.field name="sat_unit_key" label="Unidad SAT" as="select" required :options="CfdiCatalogs::options('unidades')" selected="E48" />
                 </div>
                 <x-ui.field name="tax_profile_id" label="Impuesto" as="select" :options="$taxOptions" :selected="$defaultTaxProfileId" placeholder="Exento / sin impuesto" />

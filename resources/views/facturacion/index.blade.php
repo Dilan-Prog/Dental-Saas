@@ -25,7 +25,7 @@
         </x-slot>
     </x-ui.page-header>
 
-    <div class="grid grid-3 mb-2">
+    <div class="grid grid-4 mb-2">
         <x-ui.kpi label="Facturado del mes" :value="\App\Support\Money::format($kpis['invoiced'])" />
         <x-ui.kpi label="Por cobrar" :value="\App\Support\Money::format($kpis['receivable'])"
                   :delta="$kpis['receivable_count'] . ' ' . ($kpis['receivable_count'] === 1 ? 'factura pendiente' : 'facturas pendientes')" />
@@ -89,7 +89,7 @@
             <x-slot name="head">
                 <tr>
                     <th>Folio</th><th>Receptor</th><th>Fecha</th>
-                    <th class="text-right">Total</th><th class="text-right">Saldo</th><th>Estado</th><th class="actions"></th>
+                    <th>Total</th><th>Saldo</th><th>Estado</th><th class="actions"></th>
                 </tr>
             </x-slot>
             @forelse ($invoices as $invoice)
@@ -104,12 +104,12 @@
                         {{ $invoice->patient?->full_name ?? '—' }}
                         @if (! empty($invoice->receiver_snapshot['rfc']))<span class="fact-sub mono">{{ $invoice->receiver_snapshot['rfc'] }}</span>@endif
                     </td>
-                    <td class="nowrap">{{ $invoice->created_at->translatedFormat('j M Y') }}</td>
-                    <td class="text-right mono fw-500">{{ \App\Support\Money::format($invoice->total) }}</td>
-                    <td class="text-right mono">
+                    <td class="nowrap">{{ str_replace('.', '', $invoice->created_at->translatedFormat('j M Y')) }}</td>
+                    <td class="mono fw-600">{{ preg_replace('/\.00$/', '', \App\Support\Money::format($invoice->total)) }}</td>
+                    <td class="mono">
                         @if ($invoice->fiscal_status->value === 'borrador') <span class="text-subtle">—</span>
                         @elseif ($invoice->fiscal_status->value === 'cancelada') $0
-                        @else {{ \App\Support\Money::format($balance) }}
+                        @else {{ preg_replace('/\.00$/', '', \App\Support\Money::format($balance)) }}
                         @endif
                     </td>
                     <td>@include('facturacion._estado', ['invoice' => $invoice])</td>

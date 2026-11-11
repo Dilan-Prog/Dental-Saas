@@ -84,8 +84,8 @@
                         · Serie/folio fiscal: {{ $invoice->series }}{{ $invoice->fiscal_folio }}
                     @endif
                     <br>
-                    {{ $invoice->branch?->name }} · {{ $invoice->created_at->translatedFormat('j M Y') }}
-                    @if ($invoice->stamped_at) · Timbrada {{ $invoice->stamped_at->translatedFormat('j M Y H:i') }}@endif
+                    {{ $invoice->branch?->name }} · {{ str_replace('.', '', $invoice->created_at->translatedFormat('j M Y')) }}
+                    @if ($invoice->stamped_at) · Timbrada {{ str_replace('.', '', $invoice->stamped_at->translatedFormat('j M Y H:i')) }}@endif
                 </div>
 
                 <div class="fact-doc__block">
@@ -140,7 +140,7 @@
                 @if ($invoice->paymentComplements->isNotEmpty())
                     <div class="fact-section">
                         <h3>Complementos de pago</h3>
-                        <table class="fact-table">
+                        <div class="table-wrap"><table class="fact-table">
                             <thead><tr><th>Complemento</th><th>Parcialidad</th><th class="num">Saldo anterior</th><th class="num">Pagado</th><th class="num">Saldo insoluto</th><th>Estado</th></tr></thead>
                             @foreach ($invoice->paymentComplements as $pc)
                                 <tr>
@@ -152,7 +152,7 @@
                                     <td>{{ $pc->complementInvoice?->fiscal_status->label() }}</td>
                                 </tr>
                             @endforeach
-                        </table>
+                        </table></div>
                     </div>
                 @endif
 
@@ -160,7 +160,7 @@
                 @if ($isComplement && $invoice->complementRows->isNotEmpty())
                     <div class="fact-section">
                         <h3>Documentos relacionados</h3>
-                        <table class="fact-table">
+                        <div class="table-wrap"><table class="fact-table">
                             <thead><tr><th>Factura</th><th>Parcialidad</th><th class="num">Saldo anterior</th><th class="num">Pagado</th><th class="num">Saldo insoluto</th></tr></thead>
                             @foreach ($invoice->complementRows as $row)
                                 <tr>
@@ -171,7 +171,7 @@
                                     <td class="num">{{ Money::format($row->remaining_balance) }}</td>
                                 </tr>
                             @endforeach
-                        </table>
+                        </table></div>
                     </div>
                 @endif
 
@@ -181,12 +181,12 @@
                     @if ($invoice->applications->isEmpty())
                         <p class="fact-note">Sin pagos registrados.</p>
                     @else
-                        <table class="fact-table">
+                        <div class="table-wrap"><table class="fact-table">
                             <thead><tr><th>Fecha</th><th>Método</th><th>Referencia</th><th class="num">Monto</th><th></th></tr></thead>
                             @foreach ($invoice->applications->sortBy('applied_at') as $app)
                                 @php $pay = $app->payment; $reversed = $app->reversed_at !== null; @endphp
                                 <tr class="{{ $reversed ? 'fact-reversed' : '' }}">
-                                    <td>{{ $pay?->paid_at?->translatedFormat('j M Y') }}</td>
+                                    <td>{{ str_replace('.', '', $pay?->paid_at?->translatedFormat('j M Y')) }}</td>
                                     <td>{{ $pay?->method->label() }}</td>
                                     <td class="mono">{{ $pay?->reference ?: '—' }}</td>
                                     <td class="num">{{ Money::format($app->applied_amount) }}</td>
@@ -199,7 +199,7 @@
                                     </td>
                                 </tr>
                             @endforeach
-                        </table>
+                        </table></div>
                     @endif
                 </div>
                 @endunless
@@ -207,11 +207,11 @@
                 @if ($invoice->pacRequests->isNotEmpty() || $invoice->cancellations->isNotEmpty())
                     <div class="fact-section">
                         <h3>Bitácora fiscal</h3>
-                        <table class="fact-table">
+                        <div class="table-wrap"><table class="fact-table">
                             <thead><tr><th>Fecha</th><th>Evento</th><th>Estado</th><th>Detalle</th></tr></thead>
                             @foreach ($invoice->pacRequests as $r)
                                 <tr>
-                                    <td class="nowrap">{{ $r->requested_at?->translatedFormat('j M Y H:i') }}</td>
+                                    <td class="nowrap">{{ str_replace('.', '', $r->requested_at?->translatedFormat('j M Y H:i')) }}</td>
                                     <td>{{ $r->kind->label() }} (intento {{ $r->attempt_number }})</td>
                                     <td>{{ $r->status->label() }}</td>
                                     <td class="text-muted">{{ $r->error_detail ?: $r->response_message ?: '—' }}</td>
@@ -219,14 +219,14 @@
                             @endforeach
                             @foreach ($invoice->cancellations as $c)
                                 <tr>
-                                    <td class="nowrap">{{ $c->requested_at?->translatedFormat('j M Y H:i') }}</td>
+                                    <td class="nowrap">{{ str_replace('.', '', $c->requested_at?->translatedFormat('j M Y H:i')) }}</td>
                                     <td>Cancelación · motivo {{ $c->reason_code }} ({{ config('sat.motivos_cancelacion.' . $c->reason_code) }})
                                         @if ($c->substituteInvoice)<span class="fact-sub">Sustituida por {{ $c->substituteInvoice->internal_folio }}</span>@endif</td>
                                     <td>{{ $c->status->label() }}</td>
                                     <td class="text-muted">{{ $c->response_detail ?: '—' }}</td>
                                 </tr>
                             @endforeach
-                        </table>
+                        </table></div>
                     </div>
                 @endif
             </div>

@@ -59,7 +59,9 @@ class Money
     /** $1,234.50 (MXN por defecto). */
     public static function format(string|int|float|null $value, string $currency = 'MXN', bool $withCode = false): string
     {
-        $text = '$' . number_format((float) self::round($value, 2), 2, '.', ',');
+        $amount = (float) self::round($value, 2);
+        // El signo va antes del simbolo: -$1,234.50 (no $-1,234.50).
+        $text = ($amount < 0 ? '-' : '') . '$' . number_format(abs($amount), 2, '.', ',');
 
         return $withCode ? "{$text} {$currency}" : $text;
     }

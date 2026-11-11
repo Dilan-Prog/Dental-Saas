@@ -37,7 +37,7 @@
                     @forelse ($invoices as $inv)
                         <tr>
                             <td><a class="fact-folio" href="{{ route('facturacion.show', $inv) }}">{{ $inv->internal_folio }}</a><span class="fact-sub">{{ $inv->cfdi_payment_method->value }}</span></td>
-                            <td class="nowrap">{{ $inv->created_at->translatedFormat('j M Y') }}</td>
+                            <td class="nowrap">{{ str_replace('.', '', $inv->created_at->translatedFormat('j M Y')) }}</td>
                             <td class="text-right mono">{{ Money::format($inv->total) }}</td>
                             <td class="text-right mono fw-500">{{ Money::format($inv->balance_due) }}</td>
                             <td class="text-right">

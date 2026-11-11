@@ -82,6 +82,22 @@ class DemoUsuariosSeeder extends Seeder
 
     private function member(string $name, string $email, Role $role, bool $active, string $branchId, bool $withPassword = true): OrganizationMember
     {
+        // Si otro seeder demo (Agenda, BaseSeeder) ya creó a esta persona, se reutiliza:
+        // evita doctores duplicados con distinto correo y no cambia su rol ni su correo.
+        $existing = User::query()->where('email', '!=', $email)->where('full_name', $name)->first();
+        if ($existing && ! User::query()->where('email', $email)->exists()) {
+            $member = OrganizationMember::query()->where('user_id', $existing->id)->first();
+            if ($member) {
+                DB::table('member_branches')->insertOrIgnore([
+                    'organization_id' => $member->organization_id,
+                    'member_id' => $member->id,
+                    'branch_id' => $branchId,
+                ]);
+
+                return $member;
+            }
+        }
+
         $user = User::query()->where('email', $email)->first() ?? new User;
         $user->forceFill([
             'full_name' => $name,

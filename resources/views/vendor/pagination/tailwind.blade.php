@@ -2,15 +2,14 @@
 @if ($paginator->hasPages())
     <nav class="pagination-wrap" role="navigation" aria-label="Paginación">
         <div class="text-muted text-sm">
-            Mostrando <span class="fw-600">{{ $paginator->firstItem() }}</span> a <span class="fw-600">{{ $paginator->lastItem() }}</span>
-            de <span class="fw-600">{{ $paginator->total() }}</span> resultados
+            Mostrando {{ $paginator->firstItem() }}-{{ $paginator->lastItem() }} de {{ $paginator->total() }} {{ $noun ?? 'resultados' }}
         </div>
 
         <div class="pagination">
             @if ($paginator->onFirstPage())
-                <span class="page is-disabled" aria-disabled="true">&lsaquo; Anterior</span>
+                <span class="page is-disabled" aria-disabled="true" aria-label="Anterior">&lsaquo;</span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="page">&lsaquo; Anterior</a>
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="page" aria-label="Anterior">&lsaquo;</a>
             @endif
 
             @foreach ($elements as $element)
@@ -29,9 +28,9 @@
             @endforeach
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="page">Siguiente &rsaquo;</a>
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="page" aria-label="Siguiente">&rsaquo;</a>
             @else
-                <span class="page is-disabled" aria-disabled="true">Siguiente &rsaquo;</span>
+                <span class="page is-disabled" aria-disabled="true" aria-label="Siguiente">&rsaquo;</span>
             @endif
         </div>
     </nav>

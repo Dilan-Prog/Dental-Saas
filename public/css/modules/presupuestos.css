@@ -11,6 +11,9 @@
 }
 .quotes-filters .input-wrap { width: min(320px, 100%); }
 .quotes-filters__date { display: flex; flex-direction: column; gap: 2px; }
+/* Folio como en el Figma: texto fuerte, no azul (la fila completa es clicable). */
+.quote-folio { color: var(--text); text-decoration: none; }
+.quote-folio:hover { color: var(--primary); }
 
 /* ---------- Formulario: selector de paciente ---------- */
 .patient-picker { position: relative; }
@@ -118,6 +121,8 @@
 }
 
 @media (max-width: 720px) {
+    /* Las tablas desplazan dentro de su contenedor en vez de apretar las columnas. */
+    .card .table { min-width: 620px; }
     .quote-totals-wrap { justify-content: stretch; }
     .quote-totals { width: 100%; }
     .print-doc__parties { grid-template-columns: 1fr; }

@@ -21,13 +21,13 @@
 .note-form .soap textarea { min-height: 110px; }
 
 /* ---- Línea de tiempo (historial, adendas, cambios del odontograma) ---- */
-.timeline { display: flex; flex-direction: column; }
-.timeline__item { position: relative; padding: 0 0 18px 22px; border-left: 2px solid var(--border); margin-left: 6px; }
-.timeline__item:last-child { padding-bottom: 0; border-left-color: transparent; }
-.timeline__item::before { content: ''; position: absolute; left: -7px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--primary); }
-.timeline__item.is-past::before { background: var(--border-strong); box-shadow: 0 0 0 1px var(--border-strong); }
-.timeline__title { font-weight: 600; font-size: 14px; }
-.timeline__text { margin-top: 2px; color: var(--text-2); font-size: 14px; line-height: 1.5; }
+.exp-timeline { display: flex; flex-direction: column; }
+.exp-timeline__item { position: relative; padding: 0 0 18px 22px; border-left: 2px solid var(--border); margin-left: 6px; }
+.exp-timeline__item:last-child { padding-bottom: 0; border-left-color: transparent; }
+.exp-timeline__item::before { content: ''; position: absolute; left: -7px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--primary); }
+.exp-timeline__item.is-past::before { background: var(--border-strong); box-shadow: 0 0 0 1px var(--border-strong); }
+.exp-timeline__title { font-weight: 600; font-size: 14px; }
+.exp-timeline__text { margin-top: 2px; color: var(--text-2); font-size: 14px; line-height: 1.5; }
 
 /* ---- Archivos ---- */
 .dropzone { border: 2px dashed var(--border-strong); border-radius: var(--radius-lg); padding: 28px 16px; text-align: center; cursor: pointer; background: var(--surface); transition: border-color .15s, background .15s; }
@@ -147,4 +147,11 @@
     .docs, .content { padding: 0 !important; }
     .no-print { display: none !important; }
     .exp-header, .tabs { display: none !important; }
+}
+
+/* ---- Movil: encabezados de tarjeta con filtros/botones (Notas, Consentimientos...) ---- */
+@media (max-width: 640px) {
+    .card__header { flex-wrap: wrap; align-items: flex-start; }
+    .card__header .row { flex-wrap: wrap; width: 100%; }
+    .card__header .row > .btn, .card__header .row > .tabs { flex: 1 1 auto; }
 }

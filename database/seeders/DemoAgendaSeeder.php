@@ -78,7 +78,9 @@ class DemoAgendaSeeder extends Seeder
         $hasPassword = Schema::hasColumn('users', 'password');
 
         foreach (self::DOCTORS as [$email, $name, $license, $specialty]) {
-            $userId = DB::table('users')->where('email', $email)->value('id');
+            // Reutiliza a la persona si otro seeder (Usuarios) ya la creó con otro correo.
+            $userId = DB::table('users')->where('email', $email)->value('id')
+                ?: DB::table('users')->where('full_name', $name)->value('id');
             if (! $userId) {
                 $userId = (string) Str::uuid();
                 $row = ['id' => $userId, 'full_name' => $name, 'email' => $email, 'is_active' => true];

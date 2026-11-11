@@ -18,36 +18,14 @@
 /* ---- Estructura: submenú de Configuración + contenido ---- */
 .usr-layout {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-columns: 260px minmax(0, 1fr);
     gap: var(--sp-6);
     align-items: start;
 }
 .usr-main { min-width: 0; }
+@media (max-width: 1279px) { .usr-layout { grid-template-columns: 220px minmax(0, 1fr); gap: var(--sp-4); } }
+@media (max-width: 1023px) { .usr-layout { grid-template-columns: minmax(0, 1fr); } }
 
-.usr-submenu {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--sp-2);
-    position: sticky;
-    top: var(--sp-4);
-}
-.usr-submenu__link {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-    padding: 9px 12px;
-    border-radius: var(--radius);
-    font-size: 13.5px;
-    font-weight: 500;
-    color: var(--text-2);
-    text-decoration: none;
-}
-.usr-submenu__link:hover { background: var(--surface-hover); }
-.usr-submenu__link.is-active { background: var(--primary-soft); color: var(--primary); font-weight: 700; }
 
 .usr-back {
     display: inline-flex;
@@ -60,9 +38,14 @@
 }
 
 /* ---- Filtros del listado ---- */
-.usr-filters { justify-content: flex-start; }
-.usr-filters .input-wrap { flex: 1 1 240px; }
-.usr-filters select { min-width: 170px; }
+.usr-filters { display: grid; grid-template-columns: minmax(200px, 1.6fr) repeat(3, minmax(130px, 1fr)) auto; align-items: center; gap: var(--sp-2); }
+.usr-filters .input-wrap, .usr-filters .select { min-width: 0; width: 100%; }
+
+/* Tabla de usuarios: compacta para que quepa junto al submenú (badges sin partirse) */
+.usr-main .table th, .usr-main .table td { padding-left: 10px; padding-right: 10px; }
+.usr-main .table td:nth-child(2) { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.usr-main .table td:nth-child(3), .usr-main .table td:nth-child(5) { white-space: nowrap; }
+.usr-main .table td:first-child { min-width: 185px; }
 
 /* ---- Listas de casillas ---- */
 .usr-checklist { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); }
@@ -141,15 +124,15 @@
 .usr-preview__item.is-visible { background: var(--primary-soft); color: var(--primary); font-weight: 700; font-size: 13px; }
 
 /* ---- Responsivo ---- */
-@media (max-width: 1100px) {
+/* Con el submenú de Configuración, matriz + resumen en dos columnas solo caben desde ~1700px */
+@media (max-width: 1699px) {
     .usr-roles-grid { grid-template-columns: minmax(0, 1fr); }
 }
-@media (max-width: 900px) {
-    .usr-layout { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
-    .usr-submenu { flex-direction: row; overflow-x: auto; position: static; }
-    .usr-submenu__link { white-space: nowrap; }
+@media (max-width: 1100px) {
+    .usr-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .usr-filters .input-wrap { grid-column: 1 / -1; }
 }
 @media (max-width: 600px) {
-    .usr-filters select, .usr-filters .input-wrap { flex: 1 1 100%; width: 100%; }
+    .usr-filters { grid-template-columns: minmax(0, 1fr); }
     .usr-signature__img { width: 100%; }
 }

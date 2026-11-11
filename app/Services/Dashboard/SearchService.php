@@ -38,7 +38,7 @@ class SearchService
         $groups = [];
 
         if ($this->user->hasPermission('pacientes', 'ver')) {
-            $items = Patient::query()->search($like)->orderBy('full_name')->limit($this->limit)->get()
+            $items = Patient::query()->search($term)->orderBy('full_name')->limit($this->limit)->get()
                 ->map(fn (Patient $p) => [
                     'label' => $p->full_name,
                     'sub' => trim($p->folio.' · '.($p->phone ?: ($p->email ?: '')), ' ·'),
@@ -49,7 +49,7 @@ class SearchService
 
         if ($this->user->hasPermission('agenda', 'ver')) {
             $items = Appointment::query()
-                ->whereHas('patient', fn (Builder $q) => $q->search($like))
+                ->whereHas('patient', fn (Builder $q) => $q->search($term))
                 ->with(['patient:id,full_name', 'treatment:id,name'])
                 ->orderByDesc('starts_at')->limit($this->limit)->get()
                 ->map(fn (Appointment $a) => [
@@ -64,7 +64,7 @@ class SearchService
             $items = Invoice::query()
                 ->where(fn (Builder $w) => $w
                     ->where('internal_folio', 'like', '%'.$like.'%')
-                    ->orWhereHas('patient', fn (Builder $q) => $q->search($like)))
+                    ->orWhereHas('patient', fn (Builder $q) => $q->search($term)))
                 ->with('patient:id,full_name')
                 ->orderByDesc('created_at')->limit($this->limit)->get()
                 ->map(fn (Invoice $i) => [
@@ -79,7 +79,7 @@ class SearchService
             $items = Prescription::query()
                 ->where(fn (Builder $w) => $w
                     ->where('folio', 'like', '%'.$like.'%')
-                    ->orWhereHas('patient', fn (Builder $q) => $q->search($like)))
+                    ->orWhereHas('patient', fn (Builder $q) => $q->search($term)))
                 ->with('patient:id,full_name')
                 ->orderByDesc('issued_on')->limit($this->limit)->get()
                 ->map(fn (Prescription $r) => [
@@ -94,7 +94,7 @@ class SearchService
             $items = Quote::query()
                 ->where(fn (Builder $w) => $w
                     ->where('folio', 'like', '%'.$like.'%')
-                    ->orWhereHas('patient', fn (Builder $q) => $q->search($like)))
+                    ->orWhereHas('patient', fn (Builder $q) => $q->search($term)))
                 ->with('patient:id,full_name')
                 ->orderByDesc('quote_date')->limit($this->limit)->get()
                 ->map(fn (Quote $q) => [

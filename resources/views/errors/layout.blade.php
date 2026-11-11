@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('code') · {{ config('app.name', 'Dental SaaS') }}</title>
+    <title>@yield('code') · Dental SaaS</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <style>
         /* Respaldo mínimo si app.css aún no existe */

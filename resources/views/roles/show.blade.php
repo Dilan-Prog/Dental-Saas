@@ -3,6 +3,7 @@
 @section('title', $role->name)
 
 @push('styles')
+    <link rel="stylesheet" href="{{ asset('css/modules/configuracion.css') }}?v={{ @filemtime(public_path('css/modules/configuracion.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/modules/usuarios.css') }}?v={{ @filemtime(public_path('css/modules/usuarios.css')) }}">
 @endpush
 
@@ -32,7 +33,7 @@
 @endphp
 
 <div class="usr-layout">
-    <aside>@include('usuarios.partials.submenu')</aside>
+    @include('configuracion.partials.nav', ['section' => 'roles'])
 
     <div class="usr-main">
         <a href="{{ route('roles.index') }}" class="usr-back"><x-ui.icon name="arrow-left" size="sm" /> Roles</a>

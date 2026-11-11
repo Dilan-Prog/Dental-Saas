@@ -112,7 +112,9 @@ class DashboardTest extends TestCase
 
         $this->appointment($p, $doctor, now()->setTime(10, 0));
         // Pendiente en el futuro (la alerta "confirmar cita" solo mira citas por venir).
-        $this->appointment($this->patient('Daniela Vargas', 'PAC-9002'), $doctor, now()->addHours(2), 'pendiente');
+        // Con otro doctor: "ahora + 2 h" puede caer sobre la cita de las 10:00 segun la hora de ejecucion
+        // y el trigger de empalme rechazaria la segunda cita del mismo doctor.
+        $this->appointment($this->patient('Daniela Vargas', 'PAC-9002'), $this->memberId($admin), now()->addHours(2), 'pendiente');
         // Una cancelada hoy no cuenta.
         $this->appointment($this->patient('Cancelada Hoy', 'PAC-9003'), $doctor, now()->setTime(15, 0), 'cancelada');
 

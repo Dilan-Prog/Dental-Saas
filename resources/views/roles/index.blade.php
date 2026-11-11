@@ -3,6 +3,7 @@
 @section('title', 'Roles y permisos')
 
 @push('styles')
+    <link rel="stylesheet" href="{{ asset('css/modules/configuracion.css') }}?v={{ @filemtime(public_path('css/modules/configuracion.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/modules/usuarios.css') }}?v={{ @filemtime(public_path('css/modules/usuarios.css')) }}">
 @endpush
 
@@ -10,7 +11,7 @@
 @php $can = fn ($action) => auth()->user()->hasPermission('roles', $action); @endphp
 
 <div class="usr-layout">
-    <aside>@include('usuarios.partials.submenu')</aside>
+    @include('configuracion.partials.nav', ['section' => 'roles'])
 
     <div class="usr-main">
         <x-ui.page-header title="Roles y permisos" subtitle="Crea roles y define qué puede hacer cada uno en cada módulo.">

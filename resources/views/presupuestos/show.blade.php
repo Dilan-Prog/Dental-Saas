@@ -92,7 +92,7 @@
                     <dt>Doctor</dt><dd>{{ $quote->doctor?->name ?? '—' }}</dd>
                     <dt>Sucursal</dt><dd>{{ $quote->branch?->name ?? '—' }}</dd>
                     <dt>Fecha</dt><dd>{{ $quote->quote_date->translatedFormat('j \d\e F \d\e Y') }}</dd>
-                    @if ($quote->sent_at)<dt>Enviado</dt><dd>{{ $quote->sent_at->translatedFormat('j M Y, H:i') }}</dd>@endif
+                    @if ($quote->sent_at)<dt>Enviado</dt><dd>{{ str_replace('.', '', $quote->sent_at->translatedFormat('j M Y, H:i')) }}</dd>@endif
                     <dt>Moneda</dt><dd>{{ $quote->currency }}</dd>
                 </dl>
                 @if ($status === QuoteStatus::Aprobado && $planned > 0)
@@ -115,7 +115,7 @@
                             <x-ui.badge :variant="$badge[$entry->to_status->value]">{{ $entry->to_status->label() }}</x-ui.badge>
                             <span class="text-sm">{{ $entry->from_status ? 'desde '.mb_strtolower($entry->from_status->label()) : 'creado' }}</span>
                             <span class="text-xs text-subtle">
-                                {{ $entry->created_at->translatedFormat('j M Y, H:i') }}@if ($entry->actor) · {{ $entry->actor->full_name }}@endif
+                                {{ str_replace('.', '', $entry->created_at->translatedFormat('j M Y, H:i')) }}@if ($entry->actor) · {{ $entry->actor->full_name }}@endif
                             </span>
                         </li>
                     @endforeach

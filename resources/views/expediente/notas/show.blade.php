@@ -46,12 +46,12 @@
             </x-ui.card>
 
             <x-ui.card title="Adendas" subtitle="Correcciones y aclaraciones posteriores a la firma">
-                <div class="timeline">
+                <div class="exp-timeline">
                     @forelse ($note->addenda as $a)
-                        <div class="timeline__item">
-                            <div class="timeline__title">Versión {{ $a->version_number }} · {{ Fmt::doctor($a->author) }} · {{ Fmt::dateTime($a->created_at) }}</div>
-                            <div class="timeline__text"><strong>Motivo:</strong> {{ $a->reason }}</div>
-                            <div class="timeline__text">{!! nl2br(e($a->content)) !!}</div>
+                        <div class="exp-timeline__item">
+                            <div class="exp-timeline__title">Versión {{ $a->version_number }} · {{ Fmt::doctor($a->author) }} · {{ Fmt::dateTime($a->created_at) }}</div>
+                            <div class="exp-timeline__text"><strong>Motivo:</strong> {{ $a->reason }}</div>
+                            <div class="exp-timeline__text">{!! nl2br(e($a->content)) !!}</div>
                             <div class="mono text-xs text-muted" title="{{ $a->content_hash }}">SHA-256 {{ substr($a->content_hash, 0, 16) }}…</div>
                         </div>
                     @empty

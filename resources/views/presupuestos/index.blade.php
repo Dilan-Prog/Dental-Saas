@@ -29,7 +29,9 @@
         </x-slot>
     </x-ui.page-header>
 
-    <x-ui.tabs :items="$tabs" :active="$estado ?? ''" />
+    <div class="pill-tabs">
+        <x-ui.tabs :items="$tabs" :active="$estado ?? ''" />
+    </div>
 
     <form method="GET" action="{{ route('presupuestos.index') }}" class="quotes-filters">
         @if ($estado)<input type="hidden" name="estado" value="{{ $estado }}">@endif
@@ -52,20 +54,20 @@
     <x-ui.card flush>
         <x-ui.table clickable>
             <x-slot name="head">
-                <tr><th>Folio</th><th>Paciente</th><th>Doctor</th><th>Total</th><th>Estado</th><th>Fecha</th><th class="actions"></th></tr>
+                <tr><th>Folio</th><th>Paciente</th><th>Doctor</th><th>Total</th><th>Estado</th><th>Fecha</th></tr>
             </x-slot>
             @forelse ($quotes as $quote)
                 <tr data-href="{{ route('presupuestos.show', $quote) }}">
-                    <td class="fw-500 nowrap"><a href="{{ route('presupuestos.show', $quote) }}">{{ $quote->folio }}</a></td>
+                    <td class="fw-600 nowrap"><a class="quote-folio" href="{{ route('presupuestos.show', $quote) }}">{{ $quote->folio }}</a></td>
                     <td>{{ $quote->patient?->full_name ?? '—' }}</td>
                     <td class="text-muted">{{ $quote->doctor?->name ?? '—' }}</td>
-                    <td class="fw-500 mono nowrap">{{ Money::format($quote->total) }}</td>
+                    {{-- Como en el Figma: sin ".00" cuando el importe es entero. --}}
+                    <td class="fw-600 nowrap">{{ preg_replace('/\.00$/', '', Money::format($quote->total)) }}</td>
                     <td><x-ui.badge :variant="$badge[$quote->status->value]">{{ $quote->status->label() }}</x-ui.badge></td>
-                    <td class="text-muted nowrap">{{ $quote->quote_date->translatedFormat('j M Y') }}</td>
-                    <td class="actions"><x-ui.button size="sm" variant="ghost" :href="route('presupuestos.show', $quote)">Ver</x-ui.button></td>
+                    <td class="text-muted nowrap">{{ str_replace('.', '', $quote->quote_date->translatedFormat('j M Y')) }}</td>
                 </tr>
             @empty
-                <tr><td colspan="7">
+                <tr><td colspan="6">
                     <x-ui.empty-state icon="file-text" :title="$hasFilters || $estado ? 'Sin resultados' : 'Aún no hay presupuestos'"
                         :text="$hasFilters || $estado ? 'Prueba con otros filtros.' : 'Crea el primer presupuesto para un paciente.'">
                         @if (! $hasFilters && ! $estado && auth()->user()->hasPermission('presupuestos', 'crear'))
